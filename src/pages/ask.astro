@@ -1,0 +1,317 @@
+---
+// 先生に聞いてみる: 1 問ずつ答えるチャット型のフォーム。最後に Worker（workers/ask）経由で Resend からメールを送る
+// /ask/?t=<先生のID>&c=<科目名>&q=<質問の候補キー> で先生・科目・質問を選んだ状態から始められる
+import Base from '../layouts/Base.astro';
+import { getTeachers, questionsFor, href } from '../lib/teachers';
+
+const teachers = await getTeachers();
+const data = teachers.map((t) => ({
+  slug: t.slug,
+  name: t.official.name,
+  title: t.official.title,
+  photo: t.photo,
+  courses: t.courses.map((c) => c.name),
+  questions: questionsFor(t),
+}));
+const endpoint = import.meta.env.PUBLIC_ASK_ENDPOINT ?? '';
+const ROLES = ['在学生', '高校生', '社会人', '専門学校生', '保護者', '高校・専門学校の先生', '企業・自治体', '研究者', 'その他'];
+---
+
+<Base title="先生に聞いてみる" description="情報デザイン学部の先生に、授業や研究、進路のことを質問できます。">
+  <section class="hero" style="padding-bottom:1rem">
+    <p class="eyebrow">Ask</p>
+    <h1><span class="grad">先生に</span>聞いてみる</h1>
+    <p class="lead">授業のこと、研究のこと、進路のこと。ひとつずつ答えていくだけで、先生にメールで届きます。</p>
+  </section>
+
+  <div class="ask glass" id="ask" data-endpoint={endpoint}>
+    <div class="ask-progress" aria-hidden="true"><div class="ask-bar" id="bar"></div></div>
+    <p class="ask-step" id="step"></p>
+    <div class="ask-body" id="body" aria-live="polite"></div>
+    <div class="ask-nav">
+      <button type="button" class="btn" id="back">← 戻る</button>
+      <button type="button" class="btn primary" id="next">次へ →</button>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:1rem">
+    入力した内容は、選んだ先生（または学部の窓口）にだけ送られ、返信のために使われます。このサイトには公開されません。
+  </p>
+
+  <script is:inline type="application/json" id="ask-data" set:html={JSON.stringify({ teachers: data, roles: ROLES })} />
+</Base>
+
+<script>
+  type T = { slug: string; name: string; title: string; photo: string; courses: string[]; questions: { key: string; q: string }[] };
+  const { teachers, roles } = JSON.parse(document.getElementById('ask-data')!.textContent!) as { teachers: T[]; roles: string[] };
+  const root = document.getElementById('ask')!;
+  const endpoint = root.dataset.endpoint!;
+  const body = document.getElementById('body')!;
+  const stepEl = document.getElementById('step')!;
+  const bar = document.getElementById('bar')!;
+  const back = document.getElementById('back') as HTMLButtonElement;
+  const next = document.getElementById('next') as HTMLButtonElement;
+
+  type State = { teacher?: string; course?: string; question?: string; role?: string; name?: string; email?: string };
+  const KEY = 'lab-ask-draft';
+  const load = (): State => {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) ?? '{}');
+    } catch {
+      return {};
+    }
+  };
+  const save = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(s));
+    } catch {}
+  };
+  const s: State = load();
+
+  // URL で先生・科目・質問を指定できる
+  const params = new URLSearchParams(location.search);
+  const pt = params.get('t');
+  if (pt && teachers.some((t) => t.slug === pt)) {
+    if (s.teacher !== pt) Object.assign(s, { teacher: pt, course: undefined, question: undefined });
+  }
+  if (params.get('c')) s.course = params.get('c')!;
+  const qk = params.get('q');
+  const teacher = () => teachers.find((t) => t.slug === s.teacher);
+  if (qk) s.question = teacher()?.questions.find((x) => x.key === qk)?.q ?? s.question;
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, text?: string) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
+
+  type Step = { id: keyof State | 'confirm' | 'done'; label: string | (() => string); render: () => void; valid?: () => boolean };
+  let i = 0;
+  let sending = false;
+
+  // 選ぶと自動で次へ
+  const choices = (items: { value: string; label: string; img?: string; sub?: string }[], key: keyof State, cls = '') => {
+    const list = el('div', { class: `ask-choices ${cls}`, role: 'radiogroup' });
+    for (const it of items) {
+      const b = el('button', { type: 'button', class: 'ask-choice', role: 'radio', 'aria-checked': String(s[key] === it.value) });
+      if (it.img) b.append(el('img', { src: it.img, alt: '', class: 'float-face' }));
+      const span = el('span', {}, it.label);
+      if (it.sub) span.append(el('small', {}, it.sub));
+      b.append(span);
+      b.addEventListener('click', () => {
+        s[key] = it.value;
+        if (key === 'teacher') s.course = s.question = undefined;
+        save();
+        render();
+        setTimeout(() => go(i + 1), 200);
+      });
+      list.append(b);
+    }
+    body.append(list);
+  };
+
+  // テキスト入力。Enter で次へ（日本語変換中と Shift+Enter は除く）
+  const input = (key: keyof State, opts: { multiline?: boolean; type?: string; placeholder?: string; autocomplete?: string }) => {
+    const f = opts.multiline
+      ? el('textarea', { rows: '6', placeholder: opts.placeholder ?? '' })
+      : el('input', { type: opts.type ?? 'text', placeholder: opts.placeholder ?? '', autocomplete: opts.autocomplete ?? 'off' });
+    f.className = 'ask-input';
+    (f as HTMLInputElement).value = s[key] ?? '';
+    f.addEventListener('input', () => {
+      s[key] = (f as HTMLInputElement).value;
+      save();
+      const v = steps[i].valid;
+      next.disabled = v ? !v() : false;
+    });
+    f.addEventListener('keydown', (e) => {
+      const ke = e as KeyboardEvent;
+      if (ke.key === 'Enter' && !ke.shiftKey && !ke.isComposing && ke.keyCode !== 229) {
+        e.preventDefault();
+        if (steps[i].valid?.() ?? true) go(i + 1);
+      }
+    });
+    body.append(f);
+    setTimeout(() => f.focus(), 50);
+    return f;
+  };
+
+  const steps: Step[] = [
+    {
+      id: 'teacher',
+      label: 'だれに聞きたいですか？',
+      render: () =>
+        choices(
+          teachers.map((t) => ({ value: t.slug, label: t.name, img: t.photo, sub: t.title })),
+          'teacher',
+          'faces',
+        ),
+      valid: () => !!s.teacher,
+    },
+    {
+      id: 'course',
+      label: 'どの授業について？',
+      render: () =>
+        choices(
+          [...(teacher()?.courses ?? []).map((c) => ({ value: c, label: c })), { value: '', label: '授業以外のこと（研究・進路・入学など）' }],
+          'course',
+        ),
+      valid: () => s.course !== undefined,
+    },
+    {
+      id: 'question',
+      label: () => `${teacher()?.name ?? ''}先生に聞きたいことは？`,
+      render: () => {
+        const t = teacher();
+        const f = input('question', { multiline: true, placeholder: '例: この授業ではどんな作品を作りますか？' }) as HTMLTextAreaElement;
+        // ページにまだ書かれていないことを、質問の候補として出す
+        if (t?.questions.length) {
+          const hint = el('div', { class: 'ask-suggest' });
+          hint.append(el('p', { class: 'sub' }, 'まだページに書かれていないこと（押すと入ります）'));
+          for (const x of t.questions) {
+            const b = el('button', { type: 'button', class: 'chip-btn' }, x.q);
+            b.addEventListener('click', () => {
+              f.value = f.value ? `${f.value}\n${x.q}` : x.q;
+              f.dispatchEvent(new Event('input'));
+              f.focus();
+            });
+            hint.append(b);
+          }
+          body.append(hint);
+        }
+      },
+      valid: () => !!s.question?.trim(),
+    },
+    {
+      id: 'role',
+      label: 'あなたについて教えてください',
+      render: () => choices(roles.map((r) => ({ value: r, label: r })), 'role'),
+      valid: () => !!s.role,
+    },
+    {
+      id: 'name',
+      label: 'お名前は？',
+      render: () => void input('name', { placeholder: '例: 開志 太郎', autocomplete: 'name' }),
+      valid: () => !!s.name?.trim(),
+    },
+    {
+      id: 'email',
+      label: '返事を受け取るメールアドレスは？',
+      render: () => void input('email', { type: 'email', placeholder: 'you@example.com', autocomplete: 'email' }),
+      valid: () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email ?? ''),
+    },
+    {
+      id: 'confirm',
+      label: 'この内容で送ります',
+      render: () => {
+        const dl = el('dl', { class: 'ask-summary' });
+        const rows: [string, string, number][] = [
+          ['先生', `${teacher()?.name ?? ''} 先生`, 0],
+          ['授業', s.course || '授業以外のこと', 1],
+          ['聞きたいこと', s.question ?? '', 2],
+          ['あなた', `${s.role ?? ''}・${s.name ?? ''}`, 3],
+          ['返信先', s.email ?? '', 5],
+        ];
+        for (const [k, v, to] of rows) {
+          const d = el('div');
+          d.append(el('dt', {}, k));
+          const dd = el('dd', {}, v);
+          const edit = el('button', { type: 'button', class: 'ask-edit' }, '直す');
+          edit.addEventListener('click', () => go(to));
+          dd.append(edit);
+          d.append(dd);
+          dl.append(d);
+        }
+        body.append(dl);
+        // ボット避けの隠し項目
+        const hp = el('input', { type: 'text', name: 'website', tabindex: '-1', autocomplete: 'off', class: 'hp', 'aria-hidden': 'true' });
+        body.append(hp);
+        body.append(el('p', { class: 'ask-error', id: 'err', role: 'alert' }));
+      },
+    },
+    {
+      id: 'done',
+      label: '送りました',
+      render: () => {
+        const t = teacher();
+        body.append(el('p', { class: 'ask-done' }, `${t?.name ?? ''}先生に届きました。返事は ${s.email} に届きます。`));
+        const a = el('a', { class: 'btn', href: location.pathname.replace(/ask\/?$/, '') + (t ? `${t.slug}/` : '') }, `${t?.name ?? ''}先生のページへ`);
+        body.append(a);
+      },
+    },
+  ];
+
+  async function send() {
+    const err = document.getElementById('err')!;
+    if (!endpoint) {
+      err.textContent = 'いまは送信の準備中です。もうしばらくお待ちください。';
+      return;
+    }
+    sending = true;
+    next.disabled = true;
+    next.textContent = '送信中…';
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          teacher: s.teacher,
+          teacherName: teacher()?.name,
+          course: s.course,
+          question: s.question,
+          role: s.role,
+          name: s.name,
+          email: s.email,
+          page: location.href,
+          website: (body.querySelector('.hp') as HTMLInputElement | null)?.value ?? '',
+        }),
+      });
+      const r = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(r.message ?? '送信できませんでした。時間をおいてもう一度お試しください。');
+      const keep = { teacher: s.teacher, email: s.email };
+      try {
+        localStorage.removeItem(KEY);
+      } catch {}
+      s.question = undefined;
+      Object.assign(s, keep);
+      go(i + 1);
+    } catch (e) {
+      err.textContent = (e as Error).message;
+    } finally {
+      sending = false;
+      next.textContent = '送信する';
+      next.disabled = false;
+    }
+  }
+
+  function render() {
+    const st = steps[i];
+    const label = typeof st.label === 'function' ? st.label() : st.label;
+    body.replaceChildren();
+    const total = steps.length - 1;
+    stepEl.textContent = st.id === 'done' ? '' : `${Math.min(i + 1, total)} / ${total}`;
+    bar.style.width = `${(Math.min(i, total) / total) * 100}%`;
+    const h = el('h2', { class: 'ask-q' }, label);
+    body.append(h);
+    st.render();
+    back.hidden = i === 0 || st.id === 'done';
+    next.hidden = st.id === 'done';
+    next.textContent = st.id === 'confirm' ? '送信する' : '次へ →';
+    next.disabled = st.valid ? !st.valid() : false;
+  }
+
+  function go(k: number) {
+    i = Math.max(0, Math.min(steps.length - 1, k));
+    render();
+    root.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  back.addEventListener('click', () => go(i - 1));
+  next.addEventListener('click', () => {
+    if (sending) return;
+    if (steps[i].id === 'confirm') send();
+    else go(i + 1);
+  });
+
+  // URL で先生が決まっていれば、授業を選ぶところから
+  go(pt && s.teacher ? (s.course !== undefined && params.get('c') ? 2 : 1) : 0);
+</script>

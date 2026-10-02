@@ -2,7 +2,7 @@
 import { marked } from 'marked';
 import Base from '../layouts/Base.astro';
 import Evidence from '../components/Evidence.astro';
-import { getTeachers, editUrl, formatDate, href, type Teacher } from '../lib/teachers';
+import { getTeachers, editUrl, formatDate, href, questionsFor, type Teacher } from '../lib/teachers';
 import { CLUSTERS } from '../lib/taxonomy';
 import { fmt } from '../lib/officeHours';
 
@@ -22,6 +22,8 @@ const bioHtml = d.bio ? await marked.parse(d.bio) : '';
 const timeRange = (s?: string, e?: string) => (s || e ? `${s ?? ''}–${e ?? ''}` : '');
 const latestYear = Math.max(0, ...(d.highlights ?? []).map((h) => h.year));
 const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
+const asks = questionsFor(t);
+const askUrl = (q?: string) => href(`/ask/?t=${t.slug}${q ? `&q=${q}` : ''}`);
 const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.length || d.officeHours?.length || d.careers;
 ---
 
@@ -57,6 +59,7 @@ const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.lengt
         )
       }
       <div class="links">
+        <a class="btn primary" href={askUrl()}>この先生に聞いてみる</a>
         {d.lab?.url && <a class="btn primary" href={d.lab.url}>{d.lab.name}</a>}
         {d.x && <a class="btn sns" href={`https://x.com/${d.x}`}><span class="ico" aria-hidden="true">𝕏</span>@{d.x}</a>}
         {d.github && <a class="btn sns" href={`https://github.com/${d.github}`}><span class="ico" aria-hidden="true">⌥</span>GitHub</a>}
@@ -350,6 +353,25 @@ const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.lengt
         </section>
       )
     }
+
+    <section class="panel glass ask-panel">
+      <h2>Ask <span>{o.name.split(' ')[0]}先生に聞いてみよう</span></h2>
+      {asks.length > 0 ? (
+        <>
+          <p class="sub" style="margin-top:0">このページにまだ書かれていないことです。押すと質問フォームが開きます。</p>
+          <ul class="ask-list">
+            {asks.map((a) => (
+              <li>
+                <a href={askUrl(a.key)}>{a.q}</a>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p style="margin:0">授業や研究、進路のことを、先生に直接質問できます。</p>
+      )}
+      <a class="btn primary" href={askUrl()} style="margin-top:1rem">質問する →</a>
+    </section>
 
     {
       recent.length > 0 && (

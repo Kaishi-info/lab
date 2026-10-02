@@ -15,7 +15,9 @@
     "feeds": "node scripts/fetch-feeds.ts",
     "import-eval": "node scripts/import-eval-sheet.ts",
     "import-curriculum": "node scripts/import-curriculum.ts",
-    "preview:cloudflare": "./scripts/deploy.sh"
+    "preview:cloudflare": "./scripts/deploy.sh",
+    "ask:dev": "wrangler dev -c workers/ask/wrangler.jsonc",
+    "ask:deploy": "./scripts/deploy-ask.sh"
   },
   "dependencies": {
     "astro": "^7.3.5",

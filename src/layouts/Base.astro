@@ -16,6 +16,7 @@ const nav = [
   ['/fields/', '分野'],
   ['/courses/', '授業'],
   ['/office-hours/', 'オフィスアワー'],
+  ['/ask/', '質問'],
 ] as const;
 ---
 
@@ -53,7 +54,7 @@ const nav = [
       <div class="wrap">
         <div class="header-inner glass">
           <a class="brand" href={href('/')}>
-            <span class="brand-mark" aria-hidden="true"></span>
+            <img class="brand-mark" src={href('/logo-mark.svg')} alt="" width="26" height="30" />
             <span class="brand-text">
               <span class="brand-sub">開志創造大学 情報デザイン学部</span>
               <span class="brand-main">TEACHERS</span>

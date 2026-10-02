@@ -69,6 +69,15 @@ pnpm import-eval ~/Downloads/教育職員評価基準シート....xlsx shirai-ak
 下書きは `.private/<ID>-eval.yaml`（Git に入らない場所）に出ます。載せたい部分だけを自分の YAML の `highlights:` にコピーしてください。
 **評価シート本体は絶対にコミットしないでください**（`.gitignore` と CI で防いでいます）。
 
+## 先生に聞いてみる（質問フォーム）
+
+`/ask/` は 1 問ずつ答えるチャット型のフォームです（先生 → 授業 → 聞きたいこと → 立場 → 名前 → メール → 確認）。
+先生のページで **まだ書かれていない項目** が、質問の候補として出ます。よく届く質問はページに書いておくと、候補から消えます。
+
+- 送信は Cloudflare Worker（`workers/ask/`）が受け取り、Resend で先生（未登録なら学部の窓口）にメールします。先生は「返信」で答えます
+- 先生のメールアドレスは公開リポジトリに置かず、Worker の Secrets に入れます。質問した人には自動返信しません（踏み台にされないため）
+- デプロイ: `pnpm ask:deploy`（`~/.secrets/kaishi.env` の `RESEND_KAISHI_API_KEY` と `ASK_KAISHI_TO` が必要）。出てきた URL を GitHub の Variables `ASK_ENDPOINT` に登録
+
 ## 開発者向け
 
 ```bash

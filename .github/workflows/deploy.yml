@@ -37,6 +37,8 @@ jobs:
           # サブパス（/lab/）や独自ドメインに合わせてリンクを作る
           SITE: ${{ steps.pages.outputs.origin }}
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          # 「先生に聞いてみる」の送信先（workers/ask の URL）。リポジトリの Variables に ASK_ENDPOINT として登録
+          PUBLIC_ASK_ENDPOINT: ${{ vars.ASK_ENDPOINT }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

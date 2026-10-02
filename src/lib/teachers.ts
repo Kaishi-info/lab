@@ -161,3 +161,21 @@ export async function getTeachers(): Promise<Teacher[]> {
 
 // 2026-10-01 → 2026.10.01（researchmap は年・年月だけのこともある）
 export const formatDate = (d: string) => d.replaceAll('-', '.');
+
+/**
+ * ページにまだ書かれていない項目から「先生に聞いてみたいこと」の候補を作る。
+ * 質問フォームの選択肢と、先生ページの空欄の案内に使う（先生が書けば候補から消える）
+ */
+export function questionsFor(t: Teacher): { key: string; q: string }[] {
+  const d = t.data;
+  const qs: { key: string; q: string; missing: boolean }[] = [
+    { key: 'learn', q: '先生の授業やゼミでは、どんなことが学べますか？', missing: !d.learn?.length },
+    { key: 'make', q: '授業ではどんなものを作りますか？', missing: !t.courses.some((c) => c.make?.length) },
+    { key: 'projects', q: 'いま取り組んでいる研究やプロジェクトを教えてください', missing: !d.projects?.length },
+    { key: 'works', q: '学生はどんな作品や成果を生み出していますか？', missing: !d.works?.length },
+    { key: 'message', q: 'どんな学生と一緒に学びたいですか？', missing: !d.message && !d.lookingFor?.length },
+    { key: 'careers', q: 'この分野の学びは、どんな進路や仕事につながりますか？', missing: !d.careers?.length },
+    { key: 'officeHours', q: '相談に行ける時間や方法を教えてください', missing: t.ohSlots.length === 0 },
+  ];
+  return qs.filter((x) => x.missing).map(({ key, q }) => ({ key, q }));
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // 「先生に聞いてみる」フォームの送信先。Resend でメールを送る（大学の Cloudflare アカウント）
+  // デプロイ: pnpm ask:deploy（~/.secrets/kaishi.env を読む）
+  "name": "kaishi-lab-ask",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "vars": {
+    // フォームを置けるサイト（それ以外からの送信は受け付けない）
+    "ALLOWED_ORIGINS": "https://lab.kaishi.ac.jp,https://kaishi-info.github.io,https://kaishi-lab.pages.dev,http://localhost:4321",
+    // Resend で lab.kaishi.ac.jp（など）のドメイン認証が済むまでは onboarding@resend.dev（アカウントの持ち主にしか届かない）
+    "ASK_FROM": "開志創造大学 情報デザイン学部 <onboarding@resend.dev>"
+  },
+  // 同じ IP からの送信は 1 分に 3 回まで
+  "ratelimits": [{ "name": "ASK_LIMIT", "namespace_id": "4201", "simple": { "limit": 3, "period": 60 } }]
+  // Secrets（wrangler secret put。リポジトリには書かない）:
+  //   RESEND_API_KEY   … Resend の送信用キー
+  //   ASK_TO           … 先生のアドレスが未登録のときの送り先（学部の窓口など）
+  //   TEACHER_EMAILS   … {"shirai-akihiko":"...@kaishi.ac.jp", ...} の JSON（任意）
+  //   TURNSTILE_SECRET … Cloudflare Turnstile を使う場合（任意）
+}
