@@ -2,6 +2,6 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://teachers.kaishi.ac.jp',
+  site: 'https://lab.kaishi.ac.jp',
   trailingSlash: 'always',
 });

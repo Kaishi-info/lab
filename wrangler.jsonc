@@ -1,12 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   // 静的サイトを Cloudflare Workers（Static Assets）で配信する
-  "name": "kaishi-labs",
+  "name": "kaishi-lab",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
   }
   // 独自ドメインを使うときは、大学の DNS 設定のあとで有効にする
-  // "routes": [{ "pattern": "teachers.kaishi.ac.jp", "custom_domain": true }]
+  // "routes": [{ "pattern": "lab.kaishi.ac.jp", "custom_domain": true }]
 }

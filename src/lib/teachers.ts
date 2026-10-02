@@ -22,7 +22,7 @@ export type Teacher = {
   activities: Activity[];
 };
 
-export const REPO = 'https://github.com/Kaishi-info/labs';
+export const REPO = 'https://github.com/Kaishi-info/lab';
 export const editUrl = (slug: string) => `${REPO}/edit/main/teachers/${slug}.yaml`;
 
 export async function getTeachers(): Promise<Teacher[]> {

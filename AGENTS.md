@@ -7,7 +7,7 @@ AI エージェントは作業を始める前に必ず全文を読んでくだ�
 
 ## 1. このリポジトリは何か
 
-- 開志創造大学 情報デザイン学部の **先生が自分で更新する教員ページ**（公開予定: https://teachers.kaishi.ac.jp）
+- 開志創造大学 情報デザイン学部の **先生が自分で更新する教員ページ**（公開予定: https://lab.kaishi.ac.jp）
 - **公開リポジトリ** です。ここに入れたものは誰でも読めます。
 - 使い方・項目の一覧は [README.md](README.md)
 
@@ -35,7 +35,7 @@ AI エージェントは作業を始める前に必ず全文を読んでくだ�
 
 ## 4. 作業の流れ
 
-1. 依頼は Issue にする（`gh issue create -R Kaishi-info/labs ...`）。既存の Issue があればそこにコメント
+1. 依頼は Issue にする（`gh issue create -R Kaishi-info/lab ...`）。既存の Issue があればそこにコメント
 2. ブランチを作る: `<種類>/<Issue番号>-<説明>`（例: `page/12-shirai-office-hours`, `feat/13-search`）
 3. 変更したら必ず確認する:
    ```bash

@@ -15,7 +15,7 @@ import { XMLParser } from 'fast-xml-parser';
 const ROOT = new URL('..', import.meta.url).pathname;
 const TEACHERS_DIR = join(ROOT, 'teachers');
 const FEEDS_DIR = join(ROOT, 'data/feeds');
-const UA = 'kaishi-labs-bot/1.0 (+https://github.com/Kaishi-info/labs)';
+const UA = 'kaishi-lab-bot/1.0 (+https://github.com/Kaishi-info/lab)';
 const MAX_PER_SOURCE = 30;
 
 export type FeedItem = {

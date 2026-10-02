@@ -9,7 +9,7 @@ import * as cheerio from 'cheerio';
 import { stringify } from 'yaml';
 
 const LIST_URL = 'https://kaishi.ac.jp/info-d/teacher/';
-const UA = 'kaishi-labs-bot/1.0 (+https://github.com/Kaishi-info/labs)';
+const UA = 'kaishi-lab-bot/1.0 (+https://github.com/Kaishi-info/lab)';
 const ROOT = new URL('..', import.meta.url).pathname;
 const OFFICIAL_DIR = join(ROOT, 'data/official');
 const TEACHERS_DIR = join(ROOT, 'teachers');
