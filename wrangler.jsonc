@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   // 静的サイトを Cloudflare Workers（Static Assets）で配信する
-  "name": "kaishi-teachers",
+  "name": "kaishi-labs",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
