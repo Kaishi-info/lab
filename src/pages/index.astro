@@ -1,27 +1,63 @@
 ---
 import Base from '../layouts/Base.astro';
 import TeacherCard from '../components/TeacherCard.astro';
-import { getTeachers } from '../lib/teachers';
+import HeroCarousel from '../components/HeroCarousel.astro';
+import { getTeachers, href } from '../lib/teachers';
+import { AUDIENCES, CLUSTERS, type ClusterId } from '../lib/taxonomy';
 
 const teachers = await getTeachers();
+// 先生が登録している領域だけをフィルタに出す
+const used = Object.keys(CLUSTERS).filter((c) => teachers.some((t) => t.data.clusters?.includes(c as ClusterId))) as ClusterId[];
 ---
 
 <Base>
-  <section class="hero">
+  <section class="hero hero-top">
     <p class="eyebrow">Faculty of Information Design</p>
     <h1>
-      <span class="grad">先生たち</span>に、<br />会いにいこう。
+      ここでは、<br /><span class="grad">未来をつくる人たち</span>と<br />学べる。
     </h1>
     <p class="lead">
-      研究していること、最近のできごと、オフィスアワー、そして「こんな人に相談に来てほしい」。
-      情報デザイン学部の先生たちが、自分の言葉で書いて更新しているページです。
+      場所も、時間も、年齢も、経歴も関係なく。
+      「この先生から学びたい」「ここなら自分も何かを作れる」と思える出会いを。
+      情報デザイン学部の先生たちが、何を教え、何を作り、どこへつながっているのかを、自分の言葉で発信しています。
     </p>
   </section>
 
+  <HeroCarousel teachers={teachers} />
+
+  <section class="entrances" aria-label="あなたの立場から">
+    <p class="eyebrow">For you</p>
+    <ul class="entrance-list">
+      {
+        Object.entries(AUDIENCES).map(([id, a]) => (
+          <li>
+            <a class="entrance glass" href={href(`/for/${id}/`)}>
+              <span class="entrance-label">{a.label}</span>
+              <span class="entrance-arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <h2 class="section-h" id="all">先生たち <small>{teachers.length}名</small></h2>
   <div class="toolbar glass" role="search">
-    <input id="q" class="search" type="search" placeholder="名前・専門分野でさがす（例: AI、デザイン、経営）" aria-label="先生をさがす" />
+    <input id="q" class="search" type="search" placeholder="名前・領域・授業・学べることでさがす" aria-label="先生をさがす" />
     <span class="count"><span id="count">{teachers.length}</span> / {teachers.length}</span>
   </div>
+  {
+    used.length > 0 && (
+      <div class="filters" role="group" aria-label="領域で絞り込む">
+        <button type="button" class="chip-btn" aria-pressed="true" data-cluster="">すべて</button>
+        {used.map((c) => (
+          <button type="button" class="chip-btn" aria-pressed="false" data-cluster={c}>
+            {CLUSTERS[c].label}
+          </button>
+        ))}
+      </div>
+    )
+  }
 
   <div class="grid" id="grid">
     {teachers.map((t) => <TeacherCard teacher={t} />)}
@@ -34,15 +70,28 @@ const teachers = await getTeachers();
   const cards = [...document.querySelectorAll<HTMLElement>('#grid .card')];
   const count = document.querySelector('#count')!;
   const none = document.querySelector<HTMLElement>('#none')!;
-  q.addEventListener('input', () => {
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('.chip-btn')];
+  let cluster = '';
+
+  function apply() {
     const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
     let n = 0;
     for (const c of cards) {
-      const hit = words.every((w) => c.dataset.keywords!.includes(w));
+      const hit =
+        words.every((w) => c.dataset.keywords!.includes(w)) &&
+        (!cluster || c.dataset.clusters!.split(' ').includes(cluster));
       c.hidden = !hit;
       if (hit) n++;
     }
     count.textContent = String(n);
     none.hidden = n > 0;
-  });
+  }
+  q.addEventListener('input', apply);
+  for (const b of buttons) {
+    b.addEventListener('click', () => {
+      cluster = b.dataset.cluster!;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      apply();
+    });
+  }
 </script>

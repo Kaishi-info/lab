@@ -6,6 +6,7 @@ dist/
 
 # 評価シートなどの非公開資料（絶対にコミットしない）
 .private/
+strategy.md
 *.xlsx
 *.xls
 *.csv

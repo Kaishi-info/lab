@@ -1,0 +1,22 @@
+---
+// 授業動画・スライド・コードなど「証拠」へのリンク
+interface Props {
+  items: { kind: string; title?: string; url: string }[];
+}
+const { items } = Astro.props;
+const ICON: Record<string, string> = { 動画: '▶', スライド: '▤', コード: '</>', データ: '◫', 論文: '§', 作品: '◆', 展示: '◎' };
+---
+
+<ul class="evidence">
+  {
+    items.map((e) => (
+      <li>
+        <a href={e.url}>
+          <span class="ev-icon" aria-hidden="true">{ICON[e.kind] ?? '↗'}</span>
+          <span class="ev-kind">{e.kind}</span>
+          {e.title && <span class="ev-title">{e.title}</span>}
+        </a>
+      </li>
+    ))
+  }
+</ul>

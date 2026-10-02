@@ -1,63 +1,150 @@
 ---
+// オフィスアワー: 時間帯ビュー（曜日 × 時刻に先生の顔が浮かぶ）と講義リストビュー
 import Base from '../layouts/Base.astro';
-import { getTeachers } from '../lib/teachers';
-import { DAYS } from '../content.config';
+import { getTeachers, getCurriculum, href, courseAnchor } from '../lib/teachers';
+import { WEEK, fmt } from '../lib/officeHours';
 
 const teachers = await getTeachers();
-const byDay = DAYS.map((day) => ({
-  day,
-  slots: teachers
-    .flatMap((t) => (t.data.officeHours ?? []).filter((h) => h.day === day).map((h) => ({ t, h })))
-    .sort((a, b) => (a.h.start ?? '99').localeCompare(b.h.start ?? '99')),
-})).filter((g) => g.slots.length > 0);
-const without = teachers.filter((t) => !t.data.officeHours?.length);
+const curriculum = await getCurriculum();
+const bySlug = new Map(teachers.map((t) => [t.slug, t]));
+
+// ── 時間帯ビュー ──
+const all = teachers.flatMap((t) => t.ohSlots.map((s) => ({ ...s, t })));
+const HOUR = 60;
+const from = Math.floor(Math.min(9 * HOUR, ...all.map((s) => s.start)) / HOUR) * HOUR;
+const to = Math.ceil(Math.max(21 * HOUR, ...all.map((s) => s.end)) / HOUR) * HOUR;
+const hours = Array.from({ length: (to - from) / HOUR }, (_, i) => from / HOUR + i);
+
+// 1 時間ごとのマス（曜日 × 時）に、その時間に会える先生を並べる
+const cells = hours.map((h) =>
+  WEEK.map((day) => {
+    const seen = new Set<string>();
+    return all
+      .filter((s) => s.day === day && s.start < (h + 1) * HOUR && s.end > h * HOUR)
+      .filter((s) => (seen.has(s.t.slug) ? false : (seen.add(s.t.slug), true)));
+  }),
+);
+
+// ── 講義リストビュー ──
+const courseRows = curriculum
+  .filter((c) => c.teachers.some((t) => t.slug))
+  .map((c) => ({ c, slots: c.officeHours ?? [] }));
+const areas = [...new Set(courseRows.map((r) => r.c.area))];
+const without = teachers.filter((t) => t.ohSlots.length === 0);
 ---
 
-<Base title="オフィスアワー" description="情報デザイン学部の先生たちのオフィスアワー（質問・相談できる時間）の一覧です。">
+<Base title="オフィスアワー" description="情報デザイン学部の先生たちのオフィスアワー（質問・相談できる時間）。時間帯と授業から探せます。">
   <section class="hero">
     <p class="eyebrow">Office Hours</p>
     <h1><span class="grad">いつ</span>相談できる？</h1>
-    <p class="lead">オフィスアワーは、授業のこと・研究のこと・進路のことを、先生に気軽に相談できる時間です。</p>
+    <p class="lead">授業のこと、研究のこと、進路のこと。先生に気軽に相談できる時間です。顔を押すと先生のページへ。</p>
   </section>
 
-  {
-    byDay.length ? (
-      <div class="week">
-        {byDay.map((g) => (
-          <section class="day-card glass">
-            <h2>
-              <span class="oh-day">{g.day}</span>
-              {g.day === '随時' ? '随時（要連絡）' : `${g.day}曜日`}
-            </h2>
-            <ul>
-              {g.slots.map(({ t, h }) => (
-                <li>
-                  <a href={`/${t.slug}/`}>
-                    <img class="avatar" src={t.photo} alt="" loading="lazy" />
-                    <span>
-                      <b>{t.official.name}</b>
-                      <span class="oh-sub">
-                        {h.start || h.end ? `${h.start ?? ''}–${h.end ?? ''}` : '時間は相談'}
-                        {h.place && ` · ${h.place}`}
-                      </span>
+  <div class="tabs" role="tablist" aria-label="表示の切り替え">
+    <button type="button" role="tab" aria-selected="true" aria-controls="view-time" id="tab-time">時間帯で見る</button>
+    <button type="button" role="tab" aria-selected="false" aria-controls="view-course" id="tab-course">授業で見る</button>
+  </div>
+
+  <section id="view-time" role="tabpanel" aria-labelledby="tab-time">
+    <div class="tt-scroll glass">
+      <div class="tt">
+        <div class="tt-head tt-corner"></div>
+        {WEEK.map((d) => <div class="tt-head">{d}</div>)}
+        {
+          hours.map((h, hi) => (
+            <>
+              <div class="tt-hour">{h}:00</div>
+              {cells[hi].map((list, di) => (
+                <div class={`tt-cell ${list.length ? 'has' : ''}`}>
+                  {list.map((s, k) => (
+                    <a
+                      class="tt-face"
+                      href={href(`/${s.t.slug}/`)}
+                      title={`${s.t.official.name}　${s.day} ${fmt(s.start)}–${fmt(s.end)}${s.courses.length ? `（${s.courses.join('、')}）` : ''}`}
+                      style={`--delay:${-((hi * 7 + di + k) * 0.9) % 5}s`}
+                    >
+                      <img class="float-face" src={s.t.photo} alt={s.t.official.name} loading="lazy" />
+                      <span>{s.t.official.name.split(' ')[0]}</span>
+                    </a>
+                  ))}
+                </div>
+              ))}
+            </>
+          ))
+        }
+      </div>
+    </div>
+    <p class="sub" style="margin-top:.8rem">
+      科目一覧に記載のオフィスアワーと、先生が自分のページに書いた時間から作っています。正確な場所・方法は各授業の案内を確認してください。
+    </p>
+  </section>
+
+  <section id="view-course" role="tabpanel" aria-labelledby="tab-course" hidden>
+    {
+      areas.map((area) => (
+        <div class="area-block">
+          <h2 class="area-h">{area}</h2>
+          <ul class="oh-courses">
+            {courseRows
+              .filter((r) => r.c.area === area)
+              .map(({ c, slots }) => (
+                <li class="glass">
+                  <div class="ohc-main">
+                    <a class="ohc-name" href={href(`/courses/#${courseAnchor(c.id)}`)}>
+                      {c.name}
+                    </a>
+                    <span class="sub">
+                      {c.grade} · {c.term}
+                      {c.required && ' · 必修'}
                     </span>
-                  </a>
+                  </div>
+                  <div class="ohc-faces">
+                    {c.teachers
+                      .filter((x) => x.slug && bySlug.has(x.slug))
+                      .map((x) => (
+                        <a href={href(`/${x.slug}/`)} title={x.name}>
+                          <img class="float-face sm" src={bySlug.get(x.slug!)!.photo} alt={x.name} loading="lazy" />
+                        </a>
+                      ))}
+                  </div>
+                  <div class="ohc-time">
+                    {slots.length ? (
+                      slots.map((s) => (
+                        <span class="chip outline">
+                          {c.teachers.length > 1 && s.teacher && `${s.teacher.split(' ')[0]} `}
+                          {s.day} {fmt(s.start)}–{fmt(s.end)}
+                        </span>
+                      ))
+                    ) : (
+                      <span class="sub">授業内で案内</span>
+                    )}
+                  </div>
                 </li>
               ))}
-            </ul>
-          </section>
-        ))}
-      </div>
-    ) : (
-      <p class="empty">まだ登録されていません。</p>
-    )
-  }
+          </ul>
+        </div>
+      ))
+    }
+  </section>
 
   {
     without.length > 0 && (
       <p class="empty" style="margin-top:2rem">
-        まだ登録していない先生: {without.map((t) => t.official.name).join('、')}
+        時間がまだ載っていない先生: {without.map((t) => t.official.name).join('、')}
       </p>
     )
   }
 </Base>
+
+<script>
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('[role=tab]')];
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        document.getElementById(t.getAttribute('aria-controls')!)!.hidden = !on;
+      }
+    });
+  }
+</script>

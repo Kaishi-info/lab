@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 手元から Cloudflare Pages に公開する（通常は GitHub Actions が行う）
+# 手元から Cloudflare Pages にプレビューを公開する（本番は GitHub Pages。GitHub Actions が行う）
 #   ./scripts/deploy.sh            # 今のブランチ名でプレビュー公開（main なら本番）
 #   ./scripts/deploy.sh preview    # ブランチ名を指定
 # 認証情報は大学（Kaishi-info）の Cloudflare アカウントのもの。次の順で探す（どちらも Git 管理外）:

@@ -14,7 +14,8 @@
     "scrape": "node scripts/scrape-official.ts",
     "feeds": "node scripts/fetch-feeds.ts",
     "import-eval": "node scripts/import-eval-sheet.ts",
-    "deploy": "./scripts/deploy.sh"
+    "import-curriculum": "node scripts/import-curriculum.ts",
+    "preview:cloudflare": "./scripts/deploy.sh"
   },
   "dependencies": {
     "astro": "^7.3.5",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@types/node": "^26.6.4",
+    "csv-parse": "^7.0.3",
     "exceljs": "^4.4.0",
     "typescript": "^6.0.3",
     "wrangler": "^4.146.0"

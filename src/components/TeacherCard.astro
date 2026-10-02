@@ -1,51 +1,53 @@
 ---
 import type { Teacher } from '../lib/teachers';
+import { href } from '../lib/teachers';
+import { CLUSTERS } from '../lib/taxonomy';
 
 interface Props {
   teacher: Teacher;
+  /** 立場別ページなどで、見出しの代わりに出す一文 */
+  quote?: string;
 }
-const { teacher: t } = Astro.props;
+const { teacher: t, quote } = Astro.props;
 const o = t.official;
-// カードの一言: 先生が書いたメッセージ > 公式サイトの見出し
-const msg = t.data.message ?? o.messages[0]?.heading;
-const latest = t.activities[0];
-const hasOfficeHours = (t.data.officeHours?.length ?? 0) > 0;
-const keywords = [o.name, o.nameEn, o.title, ...t.specialty, t.data.lab?.name ?? ''].join(' ').toLowerCase();
+const clusters = t.data.clusters ?? [];
+const keywords = [
+  o.name,
+  o.nameEn,
+  o.title,
+  ...t.specialty,
+  ...clusters.map((c) => `${CLUSTERS[c].label} ${CLUSTERS[c].ja}`),
+  ...(t.data.learn ?? []),
+  ...t.courses.map((c) => c.name),
+  t.data.lab?.name ?? '',
+]
+  .join(' ')
+  .toLowerCase();
 ---
 
-<a class="card glass" href={`/${t.slug}/`} data-keywords={keywords}>
-  <div class="card-top">
-    <img class="avatar" src={t.photo} alt="" loading="lazy" decoding="async" />
-    <div>
-      <p class="card-name">{o.name}</p>
-      <p class="card-en">{o.nameEn}</p>
-      <p class="card-title">{o.title}{t.data.lab && ` · ${t.data.lab.name}`}</p>
-    </div>
+<a class="card glass" href={href(`/${t.slug}/`)} data-keywords={keywords} data-clusters={clusters.join(' ')}>
+  <div class="card-photo-wrap">
+    <img class="card-photo" src={t.photo} alt="" loading="lazy" decoding="async" />
+    {t.ohSlots.length > 0 && <span class="card-badge"><span class="dot" />オフィスアワーあり</span>}
   </div>
   <div class="card-body">
-    {
-      t.specialty.length > 0 && (
-        <ul class="chips">
-          {t.specialty.map((s) => (
-            <li class="chip">{s}</li>
-          ))}
-        </ul>
-      )
-    }
-    {msg && <p class="card-msg">{msg}</p>}
-    {
-      (hasOfficeHours || latest) && (
-    <div class="card-foot">
-      {
-        hasOfficeHours && (
-          <span class="status">
-            <span class="dot" />
-            オフィスアワーあり
-          </span>
-        )
-      }
-      {latest && <span>最近: {latest.title.length > 28 ? latest.title.slice(0, 28) + '…' : latest.title}</span>}
+    <div>
+      <p class="card-name">{o.name}</p>
+      <p class="card-en">{o.nameEn} · {o.title}</p>
     </div>
+    {(quote ?? t.headline) && <p class="card-msg">{quote ?? t.headline}</p>}
+    <ul class="chips" aria-label="分野">
+      {clusters.map((c) => <li class="chip cluster">{CLUSTERS[c].label}</li>)}
+      {t.specialty.map((s) => <li class="chip">{s}</li>)}
+    </ul>
+    {
+      t.courses.length > 0 && (
+        <ul class="chips course-tags" aria-label="担当科目">
+          {t.courses.slice(0, 3).map((c) => (
+            <li class="chip course">{c.name}</li>
+          ))}
+          {t.courses.length > 3 && <li class="chip outline">+{t.courses.length - 3}</li>}
+        </ul>
       )
     }
   </div>

@@ -62,7 +62,8 @@ AI エージェントは作業を始める前に必ず全文を読んでくだ�
 ## 7. 技術メモ
 
 - Astro（静的サイト）。データは YAML を Content Collections で読む（`src/content.config.ts`）
-- 公開先: Cloudflare Pages（`wrangler.jsonc`）。`deploy.yml` が main への push で本番、PR ごとにプレビュー URL を発行
+- 公開先: GitHub Pages。`deploy.yml` が main への push でビルド・公開。サイト内リンクは必ず `href()` を通す（サブパス /lab/ 対応）
+- 科目一覧は `pnpm import-curriculum <CSV>` で data/curriculum.yaml に変換する。CSV 本体とオフィスアワーの原文（内部メモが混ざる）はコミットしない
 - `watch.yml` が毎日 03:00 JST に公式サイトと researchmap・RSS を取り込む
 - パッケージ管理は pnpm。Node 24 以上（`scripts/*.ts` は Node で直接実行）
 - デザイン: グラスモーフィズム。色などは `src/styles/global.css` の先頭の CSS 変数にまとまっている。スマホ（375px）で崩れないことを確認する

@@ -1,0 +1,53 @@
+---
+// 編集チーム向け: 教員ページ標準化（Phase 1）の進み具合
+import Base from '../layouts/Base.astro';
+import { getTeachers, editUrl, href } from '../lib/teachers';
+
+const teachers = await getTeachers();
+const labels = teachers[0]?.standard.map((s) => s.label) ?? [];
+const total = teachers.length * labels.length;
+const done = teachers.reduce((n, t) => n + t.standard.filter((s) => s.done).length, 0);
+---
+
+<Base title="ページの整備状況" description="教員ページの標準項目がどこまで埋まっているか。">
+  <meta name="robots" content="noindex" slot="head" />
+  <section class="hero">
+    <p class="eyebrow">Status</p>
+    <h1><span class="grad">整備状況</span></h1>
+    <p class="lead">
+      全員のページにそろえたい標準項目の記入状況です（{done} / {total}、{total ? Math.round((done / total) * 100) : 0}%）。
+      空欄は「編集」から埋められます。
+    </p>
+  </section>
+
+  <div class="glass table-wrap">
+    <table class="status">
+      <thead>
+        <tr>
+          <th scope="col">先生</th>
+          {labels.map((l) => <th scope="col">{l}</th>)}
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          teachers.map((t) => (
+            <tr>
+              <th scope="row">
+                <a href={href(`/${t.slug}/`)}>{t.official.name}</a>
+              </th>
+              {t.standard.map((s) => (
+                <td class={s.done ? 'ok' : 'ng'} aria-label={s.done ? '記入済み' : '未記入'}>
+                  {s.done ? '●' : '·'}
+                </td>
+              ))}
+              <td>
+                <a href={editUrl(t.slug)}>編集</a>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</Base>

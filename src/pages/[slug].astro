@@ -1,7 +1,10 @@
 ---
 import { marked } from 'marked';
 import Base from '../layouts/Base.astro';
-import { getTeachers, editUrl, formatDate, type Teacher } from '../lib/teachers';
+import Evidence from '../components/Evidence.astro';
+import { getTeachers, editUrl, formatDate, href, type Teacher } from '../lib/teachers';
+import { CLUSTERS } from '../lib/taxonomy';
+import { fmt } from '../lib/officeHours';
 
 export async function getStaticPaths() {
   const teachers = await getTeachers();
@@ -12,28 +15,41 @@ const { teacher: t } = Astro.props as { teacher: Teacher };
 const o = t.official;
 const d = t.data;
 
-const RECENT = 8;
-const recent = t.activities.slice(0, RECENT);
-const older = t.activities.slice(RECENT, 40);
+// researchmap の業績（論文・発表など）と、自分で書いたトピック・ブログを分ける
+const research = t.activities.filter((a) => !a.own && a.kind !== 'ブログ・記事');
+const recent = t.activities.filter((a) => a.own || a.kind === 'ブログ・記事');
 const bioHtml = d.bio ? await marked.parse(d.bio) : '';
 const timeRange = (s?: string, e?: string) => (s || e ? `${s ?? ''}–${e ?? ''}` : '');
 const latestYear = Math.max(0, ...(d.highlights ?? []).map((h) => h.year));
 const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
+const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.length || d.officeHours?.length || d.careers;
 ---
 
-<Base title={o.name} description={d.message ?? o.messages[0]?.body ?? `${o.name}（${o.position}）`} image={t.photo}>
-  <a class="back" href="/">← 先生一覧</a>
+<Base title={o.name} description={t.headline ?? `${o.name}（${o.position}）`} image={t.photo}>
+  <a class="back" href={href('/')}>← 先生一覧</a>
 
+  <!-- 1. Hero -->
   <section class="profile glass">
     <img class="profile-photo" src={t.photo} alt={o.name} />
     <div class="profile-text">
-      <p class="eyebrow">{o.title}</p>
+      {d.catchcopy && <p class="catch">{d.catchcopy}</p>}
       <h1>{o.name}</h1>
       <p class="en">{o.nameEn}</p>
       <p class="pos">{o.position}{o.degrees.length > 0 && ` ／ ${o.degrees.join('・')}`}</p>
       {
-        t.specialty.length > 0 && (
+        d.clusters && (
           <ul class="chips">
+            {d.clusters.map((c) => (
+              <li>
+                <a class="chip cluster" href={href(`/fields/#${c}`)}>{CLUSTERS[c].label}</a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        t.specialty.length > 0 && (
+          <ul class="chips" style="margin-top:6px">
             {t.specialty.map((s) => (
               <li class="chip">{s}</li>
             ))}
@@ -42,9 +58,11 @@ const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
       }
       <div class="links">
         {d.lab?.url && <a class="btn primary" href={d.lab.url}>{d.lab.name}</a>}
+        {d.x && <a class="btn sns" href={`https://x.com/${d.x}`}><span class="ico" aria-hidden="true">𝕏</span>@{d.x}</a>}
+        {d.github && <a class="btn sns" href={`https://github.com/${d.github}`}><span class="ico" aria-hidden="true">⌥</span>GitHub</a>}
+        {d.portfolio && <a class="btn sns" href={d.portfolio}><span class="ico" aria-hidden="true">◆</span>ポートフォリオ</a>}
+        {d.researchmap && <a class="btn sns" href={`https://researchmap.jp/${d.researchmap}/`}><span class="ico" aria-hidden="true">R</span>researchmap</a>}
         {d.website && <a class="btn" href={d.website}>Webサイト</a>}
-        {d.researchmap && <a class="btn" href={`https://researchmap.jp/${d.researchmap}/`}>researchmap</a>}
-        {d.x && <a class="btn" href={`https://x.com/${d.x}`}>X @{d.x}</a>}
         {d.links?.map((l) => <a class="btn" href={l.url}>{l.label}</a>)}
         <a class="btn" href={o.sourceUrl}>公式プロフィール</a>
       </div>
@@ -52,11 +70,200 @@ const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
   </section>
 
   <div class="sections">
+    <!-- 2. What you can learn -->
     {
-      (d.message || d.lookingFor) && (
+      d.learn?.length && (
         <section class="panel glass span-2">
           <h2>
-            Message <span>相談しにきてほしい人へ</span>
+            What you can learn <span>この先生から学べること</span>
+          </h2>
+          <ol class="learn">
+            {d.learn.map((x) => (
+              <li>{x}</li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    <!-- 3. Courses -->
+    {
+      t.courses.length > 0 && (
+        <section class="panel glass span-2">
+          <h2>
+            Courses <span>担当科目</span>
+          </h2>
+          <div class="courses">
+            {t.courses.map((c) => (
+              <article class="course" id={c.anchor}>
+                <h3>
+                  <a href={c.url ?? href(`/courses/#${c.anchor}`)}>{c.name}</a>
+                </h3>
+                <ul class="chips" style="margin-top:.4rem">
+                  {c.required !== undefined && <li class="chip">{c.required ? '必修' : '選択'}</li>}
+                  {c.term && <li class="chip outline">{c.term}</li>}
+                  {c.grade && <li class="chip outline">{c.grade}</li>}
+                </ul>
+                <dl class="course-grid">
+                  {c.summary && (
+                    <div>
+                      <dt>学ぶこと</dt>
+                      <dd>{c.summary}</dd>
+                    </div>
+                  )}
+                  {c.make && (
+                    <div>
+                      <dt>作るもの</dt>
+                      <dd>
+                        <ul>{c.make.map((x) => <li>{x}</li>)}</ul>
+                      </dd>
+                    </div>
+                  )}
+                  {c.outcomes && (
+                    <div>
+                      <dt>到達目標</dt>
+                      <dd>
+                        <ul>{c.outcomes.map((x) => <li>{x}</li>)}</ul>
+                      </dd>
+                    </div>
+                  )}
+                  {c.assignments && (
+                    <div>
+                      <dt>課題・演習</dt>
+                      <dd>
+                        <ul>{c.assignments.map((x) => <li>{x}</li>)}</ul>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+                {c.evidence && <Evidence items={c.evidence} />}
+                {c.coTeachers.length > 0 && (
+                  <p class="sub" style="margin-top:.6rem">
+                    {c.coTeachers.length > 0 && (
+                      <>
+                        一緒に担当:{' '}
+                        {c.coTeachers.map((x, i) => (
+                          <>
+                            {i > 0 && '、'}
+                            {x.slug ? <a href={href(`/${x.slug}/`)}>{x.name}</a> : x.name}
+                          </>
+                        ))}
+                      </>
+                    )}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- 4. Projects -->
+    {
+      d.projects?.length && (
+        <section class="panel glass span-2">
+          <h2>
+            Projects <span>研究・制作・社会実装</span>
+          </h2>
+          <div class="cards-2">
+            {d.projects.map((p) => (
+              <article class="item">
+                <p class="t-meta">
+                  {p.kind && <span class="chip outline">{p.kind}</span>}
+                  {p.year && <span>{p.year}</span>}
+                </p>
+                <h3>{p.url ? <a href={p.url}>{p.title}</a> : p.title}</h3>
+                {p.description && <p>{p.description}</p>}
+                {p.partners && <p class="sub">連携: {p.partners.join('、')}</p>}
+                {p.evidence && <Evidence items={p.evidence} />}
+              </article>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- 5. Student Works -->
+    {
+      d.works?.length && (
+        <section class="panel glass span-2">
+          <h2>
+            Student Works <span>学生の作品・成果</span>
+          </h2>
+          <div class="cards-3">
+            {d.works.map((w) => (
+              <article class="item work">
+                {w.image && <img src={w.image} alt="" loading="lazy" />}
+                <h3>{w.url ? <a href={w.url}>{w.title}</a> : w.title}</h3>
+                <p class="sub">{[w.by, w.course, w.year].filter(Boolean).join(' · ')}</p>
+                {w.description && <p>{w.description}</p>}
+                {w.comment && <blockquote>{w.comment}</blockquote>}
+              </article>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <!-- 6. Research -->
+    {
+      (d.researchThemes?.length || research.length > 0) && (
+        <section class="panel glass span-2">
+          <h2>
+            Research <span>研究</span>
+          </h2>
+          {d.researchThemes && (
+            <ul class="themes">
+              {d.researchThemes.map((x) => (
+                <li>{x}</li>
+              ))}
+            </ul>
+          )}
+          {research.length > 0 && (
+            <>
+              <ul class="timeline">
+                {research.slice(0, 6).map((a) => (
+                  <li>
+                    <span class="t-meta">
+                      <time datetime={a.date}>{formatDate(a.date)}</time>
+                      <span class="chip outline">{a.kind}</span>
+                    </span>
+                    {a.url ? <a class="t-title" href={a.url}>{a.title}</a> : <span class="t-title">{a.title}</span>}
+                    {a.venue && <span class="t-venue">{a.venue}</span>}
+                  </li>
+                ))}
+              </ul>
+              {research.length > 6 && (
+                <details class="more">
+                  <summary>もっと見る（{research.length - 6}件）</summary>
+                  <ul class="timeline" style="margin-top:1rem">
+                    {research.slice(6).map((a) => (
+                      <li>
+                        <span class="t-meta">
+                          <time datetime={a.date}>{formatDate(a.date)}</time>
+                          <span class="chip outline">{a.kind}</span>
+                        </span>
+                        {a.url ? <a class="t-title" href={a.url}>{a.title}</a> : <span class="t-title">{a.title}</span>}
+                        {a.venue && <span class="t-venue">{a.venue}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              {d.researchmap && <p class="sub" style="margin-top:.5rem">researchmap から自動で取得しています</p>}
+            </>
+          )}
+        </section>
+      )
+    }
+
+    <!-- 7. For Students -->
+    {
+      hasForStudents && (
+        <section class="panel glass">
+          <h2>
+            For Students <span>こんな人と一緒に学びたい</span>
           </h2>
           {d.message && <p class="message-text">{d.message}</p>}
           {d.lookingFor && (
@@ -66,39 +273,92 @@ const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
               ))}
             </ul>
           )}
+          {d.consult && (
+            <>
+              <h3 class="sub-h">こんな相談に乗れます</h3>
+              <ul class="plain">{d.consult.map((x) => <li>{x}</li>)}</ul>
+            </>
+          )}
+          {d.careers && (
+            <>
+              <h3 class="sub-h">この学びがつながる進路</h3>
+              <ul class="chips">{d.careers.map((x) => <li class="chip outline">{x}</li>)}</ul>
+            </>
+          )}
+          {d.officeHours?.length && (
+            <>
+              <h3 class="sub-h">オフィスアワー</h3>
+              <ul class="oh-list">
+                {d.officeHours.map((h) => (
+                  <li class="oh-item">
+                    <span class="oh-day">{h.day}</span>
+                    <span>
+                      <span class="oh-time">{timeRange(h.start, h.end) || '時間は相談'}</span>
+                      {h.place && <span class="oh-sub">{h.url ? <a href={h.url}>{h.place}</a> : h.place}</span>}
+                      {h.note && <span class="oh-sub">{h.note}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {!d.officeHours?.length && t.ohSlots.length > 0 && (
+            <>
+              <h3 class="sub-h">オフィスアワー</h3>
+              <ul class="oh-list">
+                {t.ohSlots.map((s) => (
+                  <li class="oh-item">
+                    <span class="oh-day">{s.day}</span>
+                    <span>
+                      <span class="oh-time">{fmt(s.start)}–{fmt(s.end)}</span>
+                      {s.courses.length > 0 && <span class="oh-sub">{s.courses.join('、')}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p class="oh-sub" style="margin-top:.6rem">科目一覧に記載の時間です。</p>
+            </>
+          )}
+          {d.officeHoursNote && <p class="oh-sub" style="margin-top:.8rem">{d.officeHoursNote}</p>}
         </section>
       )
     }
 
-    <section class="panel glass">
-      <h2>Office Hours <span>オフィスアワー</span></h2>
-      {
-        d.officeHours?.length ? (
-          <ul class="oh-list">
-            {d.officeHours.map((h) => (
-              <li class="oh-item">
-                <span class="oh-day">{h.day}</span>
+    <!-- 8. Contact / Join -->
+    {
+      d.join?.length && (
+        <section class="panel glass">
+          <h2>
+            Join <span>参加・相談の入口</span>
+          </h2>
+          <ul class="join">
+            {d.join.map((j) => (
+              <li>
+                <span class="chip">{j.type}</span>
                 <span>
-                  <span class="oh-time">{timeRange(h.start, h.end) || '時間は相談'}</span>
-                  {h.place && <span class="oh-sub">{h.url ? <a href={h.url}>{h.place}</a> : h.place}</span>}
-                  {h.note && <span class="oh-sub">{h.note}</span>}
+                  {j.description}
+                  {j.url && (
+                    <>
+                      {' '}
+                      <a href={j.url}>詳しく →</a>
+                    </>
+                  )}
                 </span>
               </li>
             ))}
           </ul>
-        ) : (
-          <p class="empty">まだ登録されていません。</p>
-        )
-      }
-      {d.officeHoursNote && <p class="oh-sub" style="margin-top:.8rem">{d.officeHoursNote}</p>}
-    </section>
+        </section>
+      )
+    }
 
-    <section class="panel glass">
-      <h2>Recent <span>最近の活動</span></h2>
-      {
-        recent.length ? (
+    {
+      recent.length > 0 && (
+        <section class="panel glass">
+          <h2>
+            Recent <span>最近の活動</span>
+          </h2>
           <ul class="timeline">
-            {recent.map((a) => (
+            {recent.slice(0, 8).map((a) => (
               <li>
                 <span class="t-meta">
                   <time datetime={a.date}>{formatDate(a.date)}</time>
@@ -109,57 +369,6 @@ const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
               </li>
             ))}
           </ul>
-        ) : (
-          <p class="empty">researchmap やブログを登録すると、ここに自動で並びます。</p>
-        )
-      }
-      {
-        older.length > 0 && (
-          <details class="more">
-            <summary>もっと見る（{older.length}件）</summary>
-            <ul class="timeline" style="margin-top:1rem">
-              {older.map((a) => (
-                <li>
-                  <span class="t-meta">
-                    <time datetime={a.date}>{formatDate(a.date)}</time>
-                    <span class="chip outline">{a.kind}</span>
-                  </span>
-                  {a.url ? <a class="t-title" href={a.url}>{a.title}</a> : <span class="t-title">{a.title}</span>}
-                  {a.venue && <span class="t-venue">{a.venue}</span>}
-                </li>
-              ))}
-            </ul>
-          </details>
-        )
-      }
-    </section>
-
-    {
-      d.courses?.length && (
-        <section class="panel glass span-2">
-          <h2>
-            Courses <span>担当科目 — この授業で何が学べるか</span>
-          </h2>
-          <div class="courses">
-            {d.courses.map((c) => (
-              <article class="course">
-                <h3>{c.url ? <a href={c.url}>{c.name}</a> : c.name}</h3>
-                <ul class="chips" style="margin-top:.4rem">
-                  {c.required !== undefined && <li class="chip">{c.required ? '必修' : '選択'}</li>}
-                  {c.term && <li class="chip outline">{c.term}</li>}
-                  {c.grade && <li class="chip outline">{c.grade}</li>}
-                </ul>
-                {c.summary && <p>{c.summary}</p>}
-                {c.outcomes && (
-                  <ul>
-                    {c.outcomes.map((x) => (
-                      <li>{x}</li>
-                    ))}
-                  </ul>
-                )}
-              </article>
-            ))}
-          </div>
         </section>
       )
     }
@@ -219,7 +428,7 @@ const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
       o.messages.length > 0 && (
         <section class="panel glass span-2">
           <h2>
-            Voices <span>受験を考えているみなさんへ</span>
+            Voices <span>これから学ぶみなさんへ</span>
           </h2>
           <div class="voices">
             {o.messages.map((m) => (
@@ -237,7 +446,7 @@ const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
     <section class="panel glass span-2">
       <h2>Profile <span>経歴</span></h2>
       <details>
-        <summary style="cursor:pointer;color:var(--accent)">学歴・職歴・所属学会などを見る</summary>
+        <summary class="more-summary">学歴・職歴・所属学会などを見る</summary>
         <dl class="cv" style="margin-top:1rem">
           {
             o.sections.map((s) => (

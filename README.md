@@ -25,63 +25,22 @@ Git の操作も AI が代わりに行います。
 
 ### 書ける項目
 
-```yaml
-researchmap: akihiko            # https://researchmap.jp/<ここ>/ → 論文・発表などが「最近の活動」に自動で載る
-x: your_handle                  # X(Twitter) の ID（@なし）。リンクを表示します
-website: https://example.com    # 研究室サイト・CVサイト
-feeds:                          # ブログ・note・YouTube などの RSS/Atom。新着が自動で載る
-  - https://note.com/xxxx/rss
-links:                          # その他のリンク
-  - label: GitHub
-    url: https://github.com/xxxx
+自分の YAML ファイルに、使い方のコメント付きで全項目が並んでいます。ページは「この先生と何を学び、何を作れるか」が伝わる順に表示されます。
 
-lab:
-  name: ○○研究室
-  url: https://example.com
-  description: 研究室の一行紹介
+| # | 項目 | 内容 |
+|---|---|---|
+| 1 | `catchcopy` / `clusters` | 「○○を使って、○○をできるようにする」形のひとこと／学部の領域 |
+| 2 | `learn` | この先生から学べること（3〜5項目） |
+| 3 | `courses` | 担当科目に「作るもの・到達目標・課題・授業動画やスライド」を書き足す（科目と概要は科目一覧から自動） |
+| 4 | `projects` | 研究・制作・社会実装・PBL |
+| 5 | `works` | 学生の作品・成果（氏名は本人の同意がある場合だけ） |
+| 6 | `researchThemes` / `researchmap` / `feeds` | 研究テーマ／論文・発表の自動取得／ブログ等の自動取得 |
+| 7 | `message` / `lookingFor` / `consult` / `careers` / `audiences` | 学生へのメッセージ、相談テーマ、進路、立場別のひとこと |
+| 8 | `join` / `officeHours` | 参加・相談の入口、オフィスアワー（書けば科目一覧の時間より優先） |
+| - | `x` / `github` / `portfolio` / `website` / `lab` / `links` | リンク |
+| - | `topics` / `bio` / `highlights` | 最近のトピック、自己紹介（Markdown）、年度の取り組み |
 
-officeHours:
-  - day: 水                     # 月 火 水 木 金 土 日 随時
-    start: "18:00"              # 時刻は "" で囲む
-    end: "19:00"
-    place: オンライン（Zoom）
-    url: https://zoom.us/j/xxxx  # 任意
-    note: 前日までにSlackで連絡ください
-officeHoursNote: 上記以外もメールで相談ください
-
-message: |                      # 相談しにきてほしい学生へのメッセージ（複数行OK）
-  「AIで何か作ってみたい」と思ったら、それだけで十分です。
-lookingFor:                     # こんな学生に来てほしい（短く）
-  - 画像・動画生成AIで作品をつくりたい人
-
-courses:                        # 担当科目。シラバスの「授業概要」「到達目標」から
-  - name: クリエイティブAI
-    term: 前期
-    grade: 2年次
-    required: false             # 必修なら true
-    summary: 授業概要
-    outcomes:
-      - 何ができるようになるか
-
-topics:                         # 最近のトピック（新しい順でなくてもOK。自動で並べます）
-  - date: 2026-10-01
-    title: 〇〇学会で発表しました
-    url: https://example.com
-
-highlights:                     # 年度の取り組み（評価シートから下書きを作れる。下記）
-  - year: 2026
-    category: 教育
-    goal: 目標
-    result: 実績
-
-bio: |                          # 自由に書ける自己紹介（Markdown）
-  ## 研究していること
-  ...
-
-photo: /photos/xxx.jpg          # 写真を差し替えたいとき（public/photos/ に置く）
-specialty: [AI, デザイン]       # 専門分野の表示を変えたいとき
-hidden: true                    # 一覧に出したくないとき
-```
+まだ全員が書いた項目がそろっていない段階でも、空の項目はページに表示されません。整備状況は `/status/` で確認できます。
 
 全項目の正確な定義は [`src/content.config.ts`](src/content.config.ts) にあります。書き間違いは PR の自動チェックで分かります。
 
@@ -90,6 +49,7 @@ hidden: true                    # 一覧に出したくないとき
 | 情報 | 置き場所 | 更新 |
 |---|---|---|
 | 公式サイトの氏名・職位・経歴・メッセージ・写真 | `data/official/<ID>.yaml` | 毎日チェックし、変更があれば PR を作成 |
+| 科目一覧（科目概要・担当・オフィスアワー） | `data/curriculum.yaml` | CSV が更新されたら `pnpm import-curriculum` |
 | researchmap の業績・RSS の新着 | `data/feeds/<ID>.yaml` | 毎日取得して自動公開 |
 
 `data/` 以下は機械が書くファイルです。**手で編集しないでください**（次の取り込みで上書きされます）。
@@ -118,9 +78,10 @@ pnpm build      # dist/ に静的サイトを出力（YAML の検証も兼ねる
 pnpm check      # 型チェック
 pnpm scrape     # 公式サイトを取り込む
 pnpm feeds      # researchmap・RSS を取り込む（pnpm feeds <ID> で 1 人だけ）
-pnpm run deploy # Cloudflare Pages に公開（.secrets/kaishi.env が必要。通常は GitHub Actions が行う）
+pnpm import-curriculum <科目一覧.csv>  # 科目一覧（オフィスアワー含む）を取り込む
+pnpm preview:cloudflare  # 手元から Cloudflare Pages にプレビュー（~/.secrets/kaishi.env が必要）
 ```
 
-- 構成: Astro（静的サイト）→ Cloudflare Pages（本番 https://kaishi-lab.pages.dev 、PR ごとにプレビュー URL）
-- GitHub Actions: `ci.yml`（PR チェック）/ `watch.yml`（毎日 03:00 JST に取り込み）/ `deploy.yml`（main への push で本番、PR ごとにプレビュー）
-- デプロイには リポジトリの Secrets `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` が必要です
+- 構成: Astro（静的サイト）→ GitHub Pages（GitHub Actions でビルド・公開。独自ドメイン設定前は https://kaishi-info.github.io/lab/ ）
+- GitHub Actions: `ci.yml`（PR チェック）/ `watch.yml`（毎日 03:00 JST に取り込み）/ `deploy.yml`（main への push で GitHub Pages に公開）
+- サイト内リンクは `href()`（src/lib/teachers.ts）を通す。GitHub Pages のサブパスでも動くように

@@ -1,0 +1,88 @@
+---
+// 分野から探す
+// - 学部の領域クラスタ（src/lib/taxonomy.ts）: 先生が YAML の clusters に登録したもの
+// - 専門分野タグ: 公式サイトの専門分野（または先生が上書きした specialty）から自動
+import Base from '../layouts/Base.astro';
+import { getTeachers, href, type Teacher } from '../lib/teachers';
+import { CLUSTERS, CLUSTER_IDS } from '../lib/taxonomy';
+
+const teachers = await getTeachers();
+const clusters = CLUSTER_IDS.map((id) => ({ id, ...CLUSTERS[id], members: teachers.filter((t) => t.data.clusters?.includes(id)) })).filter(
+  (c) => c.members.length > 0,
+);
+
+// 「数学 ・ 量子情報理論」「データ工学 ソーシャルコンピューティング」のような表記も 1 語ずつに分ける
+const split = (s: string) => s.split(/\s*[・･]\s*|\s+/).filter(Boolean);
+const tagMap = new Map<string, Teacher[]>();
+for (const t of teachers) for (const s of t.specialty.flatMap(split)) tagMap.set(s, [...(tagMap.get(s) ?? []), t]);
+const tags = [...tagMap.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'ja'));
+const tagId = (s: string) => `tag-${encodeURIComponent(s)}`;
+---
+
+<Base title="分野" description="情報デザイン学部の先生たちの専門分野と、そこで教える先生・授業。">
+  <section class="hero">
+    <p class="eyebrow">Fields</p>
+    <h1><span class="grad">分野</span>から探す</h1>
+    <p class="lead">「AI」「デザイン」といった言葉だけでなく、誰が、何を教え、どんな授業につながっているのか。分野からたどれます。</p>
+  </section>
+
+  {
+    clusters.length > 0 && (
+      <div class="week" style="margin-bottom:2rem">
+        {clusters.map((f) => (
+          <section class="day-card glass field" id={f.id}>
+            <h2>{f.label}</h2>
+            <p class="sub" style="margin:-.4rem 0 .8rem">{f.ja}</p>
+            <ul>
+              {f.members.map((t) => (
+                <li>
+                  <a href={href(`/${t.slug}/`)}>
+                    <img class="avatar float-face" src={t.photo} alt="" loading="lazy" />
+                    <span>
+                      <b>{t.official.name}</b>
+                      {t.headline && <span class="oh-sub">{t.headline}</span>}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    )
+  }
+
+  <nav class="tag-cloud glass" aria-label="専門分野">
+    {
+      tags.map(([tag, ts]) => (
+        <a class="chip" href={`#${tagId(tag)}`}>
+          {tag}
+          {ts.length > 1 && <small> {ts.length}</small>}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="week" style="margin-top:20px">
+    {
+      tags.map(([tag, ts]) => (
+        <section class="day-card glass" id={tagId(tag)}>
+          <h2>{tag}</h2>
+          <ul>
+            {ts.map((t) => (
+              <li>
+                <a href={href(`/${t.slug}/`)}>
+                  <img class="avatar float-face" src={t.photo} alt="" loading="lazy" />
+                  <span>
+                    <b>{t.official.name}</b>
+                    <span class="oh-sub">{t.courses.slice(0, 3).map((c) => c.name).join('・') || t.official.title}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>

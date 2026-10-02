@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { REPO } from '../lib/teachers';
+import { REPO, href } from '../lib/teachers';
 
 interface Props {
   title?: string;
@@ -11,6 +11,12 @@ const { title, description = '開志創造大学 情報デザイン学部の先�
 const siteName = 'TEACHERS — 情報デザイン学部';
 const fullTitle = title ? `${title} | ${siteName}` : `${siteName} | 開志創造大学`;
 const path = Astro.url.pathname;
+const nav = [
+  ['/', '先生'],
+  ['/fields/', '分野'],
+  ['/courses/', '授業'],
+  ['/office-hours/', 'オフィスアワー'],
+] as const;
 ---
 
 <!doctype html>
@@ -26,7 +32,8 @@ const path = Astro.url.pathname;
     <meta property="og:description" content={description} />
     {image && <meta property="og:image" content={image} />}
     <link rel="canonical" href={new URL(path, Astro.site)} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <slot name="head" />
+    <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,7 +52,7 @@ const path = Astro.url.pathname;
     <header class="site-header">
       <div class="wrap">
         <div class="header-inner glass">
-          <a class="brand" href="/">
+          <a class="brand" href={href('/')}>
             <span class="brand-mark" aria-hidden="true"></span>
             <span class="brand-text">
               <span class="brand-sub">開志創造大学 情報デザイン学部</span>
@@ -53,8 +60,9 @@ const path = Astro.url.pathname;
             </span>
           </a>
           <nav class="site-nav" aria-label="メイン">
-            <a href="/" aria-current={path === '/' ? 'page' : undefined}>先生</a>
-            <a href="/office-hours/" aria-current={path === '/office-hours/' ? 'page' : undefined}>オフィスアワー</a>
+            {nav.map(([p, label]) => (
+              <a href={href(p)} aria-current={path === href(p) ? 'page' : undefined}>{label}</a>
+            ))}
           </nav>
         </div>
       </div>

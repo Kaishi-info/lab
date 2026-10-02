@@ -1,41 +1,82 @@
 # 本多 賢 先生のページ
-# 公式サイト由来の情報（氏名・職歴など）は data/official/honda-ken.yaml に自動で入ります。ここには書かなくてOK。
+# 公式サイトの情報（氏名・職歴など）と担当科目（科目一覧）は自動で入ります。ここには書かなくてOK。
 # 書きたい項目の先頭の「# 」を消して使ってください。書き方: README.md / 全項目の定義: src/content.config.ts
+# ページは「この先生と何を学び、何を作れるか」が伝わる順に並びます。
 
-# researchmap: your-permalink      # https://researchmap.jp/<ここ>/ の部分。業績が自動で「最近の活動」に載ります
-# x: your_handle                   # X(Twitter) のID（@なし）
-# website: https://example.com     # 研究室サイト・CVサイトなど
-# feeds:                           # ブログ・note などの RSS/Atom URL。新着が自動で載ります
-#   - https://note.com/xxxx/rss
+# ── 1. ひとこと ────────────────
+# catchcopy: ○○を使って、○○をできるようにする   # 60字まで
+# clusters: [generative-ai, hci]   # 学部の領域（src/lib/taxonomy.ts の ID。3つまで）
 
-# lab:
-#   name: ○○研究室
-#   description: 研究室の一行紹介
+# ── 2. この先生から学べること（3〜5項目）──
+# learn:
+#   - 生成AIで画像・動画をつくる技術
+#   - 作品を公開して評価を受ける方法
 
-# officeHours:
+# ── 3. 授業（科目一覧の授業に書き足せます。name は科目名と同じに）──
+# courses:
+#   - name: クリエイティブAI
+#     make: [AI画像作品, ポートフォリオ]        # 作るもの
+#     outcomes: [AIで作品をつくる技術を説明できる] # 到達目標
+#     assignments: [毎週の制作課題]              # 課題・演習
+#     evidence:                                  # 授業動画・スライド・課題例など
+#       - kind: スライド
+#         title: 第1回
+#         url: https://example.com
+
+# ── 4. プロジェクト（研究・制作・社会実装）──
+# projects:
+#   - title: プロジェクト名
+#     kind: 社会実装      # 研究 / 制作 / 社会実装 / PBL / 展示 / イベント
+#     year: 2026
+#     description: 一行説明
+#     partners: [○○市, ○○株式会社]
+#     url: https://example.com
+
+# ── 5. 学生の作品・成果（氏名は本人の同意がある場合だけ）──
+# works:
+#   - title: 作品名
+#     by: 2年 Aさん
+#     course: クリエイティブAI
+#     url: https://example.com
+
+# ── 6. 研究 ───────────────────
+# researchThemes: [研究テーマ1, 研究テーマ2]
+# researchmap: your-permalink      # https://researchmap.jp/<ここ>/ → 論文・発表を自動で取得
+# feeds: [https://note.com/xxxx/rss] # ブログ・note・YouTube の RSS → 新着を自動で取得
+
+# ── 7. 学生へ ─────────────────
+# message: |
+#   こんな人と一緒に学びたい
+# lookingFor: [こんな人に来てほしい（短く）]
+# consult: [こんな相談に乗れます]
+# careers: [この学びがつながる進路]
+# audiences:                        # 立場別のひとこと
+#   high-school: 高校生へ
+#   adult: 社会人へ
+
+# ── 8. 参加・相談の入口 ────────
+# join:
+#   - type: ゼミ        # 授業 / ゼミ / 研究 / プロジェクト / 高大連携 / 共同研究 / 取材・講演
+#     description: 説明
+# officeHours:                      # 書くと科目一覧の時間より優先されます
 #   - day: 水                       # 月〜日 / 随時
 #     start: "18:00"
 #     end: "19:00"
 #     place: オンライン（Zoom）
-#     note: 前日までにSlackで連絡ください
 
-# message: |
-#   相談しにきてほしい学生へのメッセージ
-# lookingFor:
-#   - こんな学生に来てほしい、を短く
+# ── リンク ───────────────────
+# x: your_handle                    # X の ID（@なし）
+# github: your-name                 # GitHub のユーザー名
+# portfolio: https://example.com
+# website: https://example.com
+# lab:
+#   name: ○○研究室
+#   url: https://example.com
 
-# courses:                         # 担当科目（シラバスの「授業概要」「到達目標」から）
-#   - name: 科目名
-#     term: 前期
-#     grade: 2年次
-#     summary: 授業概要
-#     outcomes:
-#       - 何ができるようになるか
-
+# ── 最近のトピック・自己紹介 ────
 # topics:
 #   - date: 2026-10-01
 #     title: 最近のトピック
 #     url: https://example.com
-
 # bio: |
-#   自由に書ける自己紹介・研究室紹介（Markdown が使えます）
+#   自由に書ける自己紹介（Markdown）

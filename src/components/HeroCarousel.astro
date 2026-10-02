@@ -1,0 +1,100 @@
+---
+// トップの hero: 先生をひとりずつ主役にして左右にローテーションする
+// スマホはスワイプ（scroll-snap）、PC は左右ボタン。自動で 6 秒ごとに次へ（操作中・動きを減らす設定では止まる）
+import type { Teacher } from '../lib/teachers';
+import { href } from '../lib/teachers';
+import { CLUSTERS } from '../lib/taxonomy';
+
+interface Props {
+  teachers: Teacher[];
+}
+const { teachers } = Astro.props;
+---
+
+<section class="carousel" aria-roledescription="carousel" aria-label="先生たち">
+  <div class="car-track" id="car-track">
+    {
+      teachers.map((t, i) => (
+        <article class="car-slide" aria-roledescription="slide" aria-label={`${i + 1} / ${teachers.length}: ${t.official.name}`}>
+          <a class="car-card glass" href={href(`/${t.slug}/`)}>
+            <div class="car-photo-wrap">
+              <img class="car-photo" src={t.photo} alt="" loading={i < 2 ? 'eager' : 'lazy'} />
+            </div>
+            <div class="car-text">
+              <p class="eyebrow">{t.official.title}</p>
+              <h2 class="car-name">{t.official.name}</h2>
+              <p class="car-en">{t.official.nameEn}</p>
+              {t.headline && <p class="car-headline">{t.headline}</p>}
+              <ul class="chips">
+                {(t.data.clusters ?? []).map((c) => (
+                  <li class="chip cluster">{CLUSTERS[c].label}</li>
+                ))}
+                {t.specialty.map((s) => (
+                  <li class="chip">{s}</li>
+                ))}
+              </ul>
+              {t.courses.length > 0 && (
+                <ul class="chips course-tags">
+                  {t.courses.slice(0, 4).map((c) => (
+                    <li class="chip course">{c.name}</li>
+                  ))}
+                  {t.courses.length > 4 && <li class="chip outline">ほか{t.courses.length - 4}科目</li>}
+                </ul>
+              )}
+              <span class="btn primary car-cta">この先生と学べること →</span>
+            </div>
+          </a>
+        </article>
+      ))
+    }
+  </div>
+  <div class="car-controls">
+    <button type="button" class="car-btn" id="car-prev" aria-label="前の先生">←</button>
+    <span class="car-count" aria-live="polite"><span id="car-i">1</span> / {teachers.length}</span>
+    <button type="button" class="car-btn" id="car-next" aria-label="次の先生">→</button>
+  </div>
+</section>
+
+<script>
+  const track = document.getElementById('car-track')!;
+  const slides = [...track.querySelectorAll<HTMLElement>('.car-slide')];
+  const label = document.getElementById('car-i')!;
+  const n = slides.length;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let i = 0;
+  let timer: number | undefined;
+
+  const go = (k: number, smooth = true) => {
+    i = (k + n) % n;
+    track.scrollTo({ left: slides[i].offsetLeft - track.offsetLeft, behavior: smooth && !reduce ? 'smooth' : 'auto' });
+    label.textContent = String(i + 1);
+  };
+  // スワイプで動いたときに番号を合わせる
+  let raf = 0;
+  track.addEventListener('scroll', () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      i = Math.round(track.scrollLeft / track.clientWidth);
+      label.textContent = String(i + 1);
+    });
+  });
+  document.getElementById('car-prev')!.addEventListener('click', () => (go(i - 1), restart()));
+  document.getElementById('car-next')!.addEventListener('click', () => (go(i + 1), restart()));
+
+  const stop = () => clearInterval(timer);
+  const start = () => {
+    stop();
+    if (!reduce) timer = window.setInterval(() => go(i + 1), 6000);
+  };
+  const restart = () => start();
+  const root = track.parentElement!;
+  root.addEventListener('pointerenter', stop);
+  root.addEventListener('pointerleave', start);
+  root.addEventListener('focusin', stop);
+  root.addEventListener('focusout', start);
+  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+
+  // 毎回ちがう先生から始める（全員が平等に主役になるように）
+  go(Math.floor(Math.random() * n), false);
+  start();
+</script>

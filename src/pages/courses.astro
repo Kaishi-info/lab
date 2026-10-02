@@ -1,0 +1,127 @@
+---
+// 授業から探す: 科目一覧（data/curriculum.yaml）＋ 先生が書いた「作るもの・課題」など
+import Base from '../layouts/Base.astro';
+import { getCurriculum, getTeachers, href, courseAnchor } from '../lib/teachers';
+
+const curriculum = await getCurriculum();
+const teachers = await getTeachers();
+const bySlug = new Map(teachers.map((t) => [t.slug, t]));
+// 先生の YAML に書かれた授業の詳細（作るもの・到達目標・課題）
+const detail = new Map(teachers.flatMap((t) => t.courses.filter((c) => c.official).map((c) => [c.official!.id, c] as const)));
+const areas = [...new Set(curriculum.map((c) => c.area))];
+---
+
+<Base title="授業" description="情報デザイン学部の授業で、何を学び、何を作り、何ができるようになるか。">
+  <section class="hero">
+    <p class="eyebrow">Courses</p>
+    <h1><span class="grad">授業</span>から探す</h1>
+    <p class="lead">全{curriculum.length}科目。それぞれの授業で何を学び、誰が教えているのか。先生が書き足した「作るもの」「課題」も載っています。</p>
+  </section>
+
+  <div class="toolbar glass" role="search">
+    <input id="q" class="search" type="search" placeholder="授業名・内容・先生の名前でさがす" aria-label="授業をさがす" />
+    <span class="count"><span id="count">{curriculum.length}</span> / {curriculum.length}</span>
+  </div>
+  <div class="filters" role="group" aria-label="区分で絞り込む">
+    <button type="button" class="chip-btn" aria-pressed="true" data-area="">すべて</button>
+    {areas.map((a) => <button type="button" class="chip-btn" aria-pressed="false" data-area={a}>{a}</button>)}
+    <button type="button" class="chip-btn" aria-pressed="false" data-area="__required">必修のみ</button>
+  </div>
+
+  <div class="course-list" id="list">
+    {
+      curriculum.map((c) => {
+        const d = detail.get(c.id);
+        const core = c.teachers.filter((x) => x.slug && bySlug.has(x.slug));
+        return (
+          <article
+            class="course glass"
+            id={courseAnchor(c.id)}
+            data-area={c.area}
+            data-required={String(c.required)}
+            data-keywords={[c.name, c.summary, ...c.teachers.map((x) => x.name)].join(' ').toLowerCase()}
+          >
+            <div class="course-head">
+              <h3>{c.name}</h3>
+              <div class="ohc-faces">
+                {core.map((x) => (
+                  <a href={href(`/${x.slug}/`)} title={x.name}>
+                    <img class="float-face sm" src={bySlug.get(x.slug!)!.photo} alt={x.name} loading="lazy" />
+                  </a>
+                ))}
+              </div>
+            </div>
+            <ul class="chips">
+              <li class={`chip ${c.required ? '' : 'outline'}`}>{c.required ? '必修' : '選択'}</li>
+              <li class="chip outline">{c.area}</li>
+              <li class="chip outline">{c.grade}</li>
+              <li class="chip outline">{c.term}</li>
+              <li class="chip outline">{c.form}</li>
+              {c.credits && <li class="chip outline">{c.credits}単位</li>}
+            </ul>
+            <p class="sub">
+              担当:{' '}
+              {c.teachers.map((x, i) => (
+                <>
+                  {i > 0 && '、'}
+                  {x.slug && bySlug.has(x.slug) ? <a href={href(`/${x.slug}/`)}>{x.name}</a> : x.name}
+                </>
+              ))}
+            </p>
+            <details class="course-summary">
+              <summary>{c.summary.slice(0, 70)}{c.summary.length > 70 && '…'}</summary>
+              <p>{c.summary}</p>
+            </details>
+            {d?.make && (
+              <p class="sub">
+                <b>作るもの:</b> {d.make.join('、')}
+              </p>
+            )}
+            {d?.assignments && (
+              <p class="sub">
+                <b>課題・演習:</b> {d.assignments.join('、')}
+              </p>
+            )}
+          </article>
+        );
+      })
+    }
+  </div>
+  <p class="empty" id="none" hidden>見つかりませんでした。</p>
+</Base>
+
+<script>
+  const q = document.querySelector<HTMLInputElement>('#q')!;
+  const items = [...document.querySelectorAll<HTMLElement>('#list .course')];
+  const count = document.querySelector('#count')!;
+  const none = document.querySelector<HTMLElement>('#none')!;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('.chip-btn')];
+  let area = '';
+  function apply() {
+    const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+    let n = 0;
+    for (const el of items) {
+      const hit =
+        words.every((w) => el.dataset.keywords!.includes(w)) &&
+        (!area || (area === '__required' ? el.dataset.required === 'true' : el.dataset.area === area));
+      el.hidden = !hit;
+      if (hit) n++;
+    }
+    count.textContent = String(n);
+    none.hidden = n > 0;
+  }
+  q.addEventListener('input', apply);
+  for (const b of buttons) {
+    b.addEventListener('click', () => {
+      area = b.dataset.area!;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      apply();
+    });
+  }
+  // #course-xxx で来たら開いて目立たせる
+  const target = location.hash && document.querySelector<HTMLElement>(decodeURIComponent(location.hash));
+  if (target) {
+    target.querySelector('details')?.setAttribute('open', '');
+    target.classList.add('focus');
+  }
+</script>

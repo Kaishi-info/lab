@@ -1,0 +1,74 @@
+---
+// 立場別の入口: 高校生 / 社会人 / 専門学校併修 / 海外在住者 / 保護者 / 高校・専門学校の先生 / 企業 / 研究者
+import Base from '../../layouts/Base.astro';
+import TeacherCard from '../../components/TeacherCard.astro';
+import { getTeachers, messageFor, href } from '../../lib/teachers';
+import { AUDIENCES, AUDIENCE_IDS, JOIN_FOR, type AudienceId } from '../../lib/taxonomy';
+
+export function getStaticPaths() {
+  return AUDIENCE_IDS.map((audience) => ({ params: { audience } }));
+}
+
+const id = Astro.params.audience as AudienceId;
+const a = AUDIENCES[id];
+const teachers = await getTeachers();
+
+// その立場へのメッセージがある先生を先に
+const withMsg = teachers
+  .map((t) => ({ t, m: messageFor(t, id) }))
+  .sort((x, y) => Number(!!y.m) - Number(!!x.m));
+
+// 連携の入口（高大連携・共同研究など）
+const joinTypes = JOIN_FOR[id] ?? [];
+const joins = teachers.flatMap((t) => (t.data.join ?? []).filter((j) => joinTypes.includes(j.type)).map((j) => ({ t, j })));
+---
+
+<Base title={`${a.label}のみなさんへ`} description={a.lead}>
+  <section class="hero">
+    <p class="eyebrow">For {a.label}</p>
+    <h1><span class="grad">{a.label}</span>のみなさんへ</h1>
+    <p class="lead">{a.lead}</p>
+    <ul class="chips" style="margin-top:1.2rem">
+      {a.wants.map((w) => <li class="chip outline">{w}</li>)}
+    </ul>
+  </section>
+
+  {
+    joinTypes.length > 0 && (
+      <section class="panel glass" style="margin-bottom:20px">
+        <h2>
+          Connect <span>{joinTypes.join('・')}の窓口</span>
+        </h2>
+        {joins.length ? (
+          <ul class="join">
+            {joins.map(({ t, j }) => (
+              <li>
+                <span class="chip">{j.type}</span>
+                <span>
+                  <a href={href(`/${t.slug}/`)}>{t.official.name}</a>
+                  {j.description && ` — ${j.description}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="empty">各先生のページの「参加・相談の入口」から、順次ご案内します。</p>
+        )}
+      </section>
+    )
+  }
+
+  <div class="grid">
+    {withMsg.map(({ t, m }) => <TeacherCard teacher={t} quote={m ? (m.heading ?? m.body) : undefined} />)}
+  </div>
+
+  <nav class="other-entrances" aria-label="ほかの立場">
+    {
+      AUDIENCE_IDS.filter((x) => x !== id).map((x) => (
+        <a class="chip outline" href={href(`/for/${x}/`)}>
+          {AUDIENCES[x].label}
+        </a>
+      ))
+    }
+  </nav>
+</Base>

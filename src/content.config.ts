@@ -4,8 +4,9 @@
 // - feeds:    researchmap・RSS から自動取得（data/feeds/<slug>.yaml）
 // ここに無い項目を書くとビルド（CI）でエラーになり、PR の段階で気づけます。
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { AUDIENCE_IDS, CLUSTER_IDS, EVIDENCE_KINDS, JOIN_TYPES } from './lib/taxonomy';
 
 const DAYS = ['月', '火', '水', '木', '金', '土', '日', '随時'] as const;
 const time = z.string().regex(/^\d{1,2}:\d{2}$/, '"18:00" のように書いてください');
@@ -18,95 +19,157 @@ const date = z
 const yamlFiles = (base: string) =>
   glob({ pattern: '*.yaml', base, generateId: ({ entry }) => entry.replace(/\.yaml$/, '') });
 
+const link = z.object({ label: z.string(), url: z.url() });
+// 証拠となる資料（動画・スライド・コードなど）。Strategy 3
+const evidence = z.object({
+  kind: z.enum(EVIDENCE_KINDS),
+  title: z.string().optional(),
+  url: z.url(),
+});
+
 const teachers = defineCollection({
   loader: yamlFiles('./teachers'),
   // 雛形のまま（全部コメント）のファイルは空として扱う
   schema: z.preprocess(
     (v) => v ?? {},
     z
-    .object({
-      // 外部サービス
-      researchmap: z.string().optional(), // researchmap の permalink（https://researchmap.jp/<ここ>/）
-      x: z.string().regex(/^[A-Za-z0-9_]+$/, '@ なしの ID を書いてください').optional(),
-      website: z.url().optional(), // 研究室サイト・CVサイト
-      feeds: z.array(z.url()).optional(), // RSS / Atom
-      links: z.array(z.object({ label: z.string(), url: z.url() })).optional(), // その他のリンク
+      .object({
+        // ── 1. Hero ─────────────────────────────
+        catchcopy: z.string().max(60).optional(), // 「○○を使って、○○をできるようにする」
+        clusters: z.array(z.enum(CLUSTER_IDS)).max(3).optional(), // 学部の領域（src/lib/taxonomy.ts）
+        specialty: z.array(z.string()).optional(), // 専門分野（公式サイトの表記を上書き）
+        photo: z.string().optional(), // 画像URL または public/ に置いたファイル（/photos/xxx.jpg）
 
-      // 表示の上書き（公式サイトの情報を変えたいとき）
-      photo: z.string().optional(), // 画像URL または public/ に置いたファイル（/photos/xxx.jpg）
-      specialty: z.array(z.string()).optional(),
+        // ── 2. What you can learn ───────────────
+        learn: z.array(z.string()).max(5).optional(), // この先生から学べること（3〜5項目）
 
-      // 研究室
-      lab: z
-        .object({
-          name: z.string(),
-          url: z.url().optional(),
-          description: z.string().optional(),
-        })
-        .optional(),
+        // ── 3. Courses ──────────────────────────
+        courses: z
+          .array(
+            z.object({
+              name: z.string(),
+              term: z.string().optional(), // 前期 / 後期
+              grade: z.string().optional(), // 配当年次
+              required: z.boolean().optional(), // 必修なら true
+              summary: z.string().optional(), // 学ぶこと（シラバスの授業概要）
+              make: z.array(z.string()).optional(), // 作るもの
+              outcomes: z.array(z.string()).optional(), // 到達目標
+              assignments: z.array(z.string()).optional(), // 課題・演習の例
+              evidence: z.array(evidence).optional(), // 授業動画・スライド・課題サンプルなど
+              url: z.url().optional(),
+            }),
+          )
+          .optional(),
 
-      // オフィスアワー
-      officeHours: z
-        .array(
-          z.object({
-            day: z.enum(DAYS),
-            start: time.optional(),
-            end: time.optional(),
-            place: z.string().optional(),
-            url: z.url().optional(),
-            note: z.string().optional(),
-          }),
-        )
-        .optional(),
-      officeHoursNote: z.string().optional(),
+        // ── 4. Projects（研究・制作・社会実装）───
+        projects: z
+          .array(
+            z.object({
+              title: z.string(),
+              kind: z.enum(['研究', '制作', '社会実装', 'PBL', '展示', 'イベント']).optional(),
+              year: z.number().int().optional(),
+              description: z.string().optional(),
+              partners: z.array(z.string()).optional(), // 連携先（企業・自治体・高校など）
+              url: z.url().optional(),
+              evidence: z.array(evidence).optional(),
+            }),
+          )
+          .optional(),
 
-      // 学生へ
-      message: z.string().optional(), // 相談しにきてほしい学生へのメッセージ
-      lookingFor: z.array(z.string()).optional(), // こんな学生に来てほしい（短く）
+        // ── 5. Student Works ────────────────────
+        // 学生の氏名を載せるのは本人の同意がある場合だけ
+        works: z
+          .array(
+            z.object({
+              title: z.string(),
+              by: z.string().optional(), // 制作者（同意がある場合のみ。例: 2年 Aさん）
+              course: z.string().optional(), // どの授業で作ったか
+              year: z.number().int().optional(),
+              description: z.string().optional(),
+              image: z.string().optional(),
+              url: z.url().optional(),
+              comment: z.string().optional(), // 学生コメント
+            }),
+          )
+          .optional(),
 
-      // 担当科目（シラバスの「何が学べるか」）
-      courses: z
-        .array(
-          z.object({
+        // ── 6. Research ─────────────────────────
+        researchThemes: z.array(z.string()).optional(), // 研究テーマ
+        researchmap: z.string().optional(), // researchmap の permalink → 業績を自動取得
+        feeds: z.array(z.url()).optional(), // ブログ・note・YouTube などの RSS / Atom → 新着を自動取得
+
+        // ── 7. For Students ─────────────────────
+        message: z.string().optional(), // こんな人と一緒に学びたい（メッセージ）
+        lookingFor: z.array(z.string()).optional(), // こんな人に来てほしい（短く）
+        consult: z.array(z.string()).optional(), // 相談テーマ（こんな相談に乗れます）
+        audiences: z.partialRecord(z.enum(AUDIENCE_IDS), z.string()).optional(), // 立場別のひとこと
+        careers: z.array(z.string()).optional(), // この学びがつながる進路・キャリア
+
+        // ── 8. Contact / Join ───────────────────
+        join: z
+          .array(
+            z.object({
+              type: z.enum(JOIN_TYPES),
+              description: z.string().optional(),
+              url: z.url().optional(),
+            }),
+          )
+          .optional(),
+        officeHours: z
+          .array(
+            z.object({
+              day: z.enum(DAYS),
+              start: time.optional(),
+              end: time.optional(),
+              place: z.string().optional(),
+              url: z.url().optional(),
+              note: z.string().optional(),
+            }),
+          )
+          .optional(),
+        officeHoursNote: z.string().optional(),
+
+        // ── 研究室・リンク ──────────────────────
+        lab: z
+          .object({
             name: z.string(),
-            term: z.string().optional(), // 前期 / 後期 など
-            grade: z.string().optional(), // 配当年次
-            required: z.boolean().optional(), // 必修なら true
-            summary: z.string().optional(), // 授業概要
-            outcomes: z.array(z.string()).optional(), // 到達目標（何ができるようになるか）
             url: z.url().optional(),
-          }),
-        )
-        .optional(),
+            description: z.string().optional(),
+          })
+          .optional(),
+        website: z.url().optional(), // 研究室サイト・CVサイト
+        portfolio: z.url().optional(), // ポートフォリオ
+        github: z.string().regex(/^[A-Za-z0-9-]+$/, 'GitHub のユーザー名だけを書いてください').optional(),
+        x: z.string().regex(/^[A-Za-z0-9_]+$/, '@ なしの ID を書いてください').optional(),
+        links: z.array(link).optional(),
 
-      // 最近のトピック（自分で書く）
-      topics: z
-        .array(
-          z.object({
-            date,
-            title: z.string(),
-            url: z.url().optional(),
-            body: z.string().optional(),
-          }),
-        )
-        .optional(),
+        // ── 最近の活動・記録 ────────────────────
+        topics: z
+          .array(
+            z.object({
+              date,
+              title: z.string(),
+              url: z.url().optional(),
+              body: z.string().optional(),
+            }),
+          )
+          .optional(),
+        // 年度の取り組み（評価シートの本人コメントから pnpm import-eval で下書きを作れる）
+        highlights: z
+          .array(
+            z.object({
+              year: z.number().int(),
+              category: z.string(),
+              goal: z.string().optional(),
+              result: z.string().optional(),
+            }),
+          )
+          .optional(),
 
-      // 年度の取り組み（評価シートの本人コメントから pnpm import-eval で下書きを作れる）
-      highlights: z
-        .array(
-          z.object({
-            year: z.number().int(),
-            category: z.string(),
-            goal: z.string().optional(),
-            result: z.string().optional(),
-          }),
-        )
-        .optional(),
-
-      bio: z.string().optional(), // 自由に書ける自己紹介・研究室紹介（Markdown）
-      hidden: z.boolean().optional(), // true にすると一覧に出さない
-    })
-    .strict(),
+        bio: z.string().optional(), // 自由に書ける自己紹介（Markdown）
+        hidden: z.boolean().optional(), // true にすると一覧に出さない
+      })
+      .strict(),
   ),
 });
 
@@ -144,5 +207,27 @@ const feeds = defineCollection({
   }),
 });
 
-export const collections = { teachers, official, feeds };
+// 科目一覧（pnpm import-curriculum で CSV から生成）
+const curriculum = defineCollection({
+  loader: file('./data/curriculum.yaml'),
+  schema: z.object({
+    name: z.string(),
+    category: z.string(),
+    area: z.string(),
+    form: z.string(),
+    grade: z.string(),
+    term: z.string(),
+    credits: z.number().optional(),
+    required: z.boolean(),
+    dp: z.array(z.string()),
+    summary: z.string(),
+    // 科目一覧から読み取ったオフィスアワーの枠（start / end は 0:00 からの分）
+    officeHours: z
+      .array(z.object({ teacher: z.string().optional(), day: z.enum(['月', '火', '水', '木', '金', '土', '日']), start: z.number(), end: z.number() }))
+      .optional(),
+    teachers: z.array(z.object({ name: z.string(), slug: z.string().optional() })),
+  }),
+});
+
+export const collections = { teachers, official, feeds, curriculum };
 export { DAYS };
