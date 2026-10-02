@@ -218,6 +218,26 @@ function stub(o: Official): string {
 `;
 }
 
+// README の先生一覧（自分のファイルへのリンク）を書き換える
+const SITE = 'https://kaishi-lab.pages.dev';
+async function updateReadme(rows: Official[]) {
+  const path = join(ROOT, 'README.md');
+  const src = await readFile(path, 'utf8');
+  const start = src.indexOf('<!-- teachers:start');
+  const end = src.indexOf('<!-- teachers:end -->');
+  if (start < 0 || end < 0) return;
+  const head = src.slice(start, src.indexOf('-->', start) + 3);
+  const table = [
+    '| 先生 | 自分のファイル（押すと編集画面） | 公開ページ |',
+    '|---|---|---|',
+    ...rows.map(
+      (o) =>
+        `| ${o.name} | [teachers/${o.slug}.yaml](https://github.com/Kaishi-info/lab/edit/main/teachers/${o.slug}.yaml) | [ページ](${SITE}/${o.slug}/) |`,
+    ),
+  ].join('\n');
+  await writeFile(path, `${src.slice(0, start)}${head}\n${table}\n${src.slice(end)}`);
+}
+
 const exists = (p: string) => access(p).then(() => true, () => false);
 
 async function main() {
@@ -231,6 +251,7 @@ async function main() {
   console.log(`一覧: ${slugs.length}名（うちカード形式 ${cards.size}名）`);
 
   const seen = new Set<string>();
+  const all: Official[] = [];
   const changed: string[] = [];
   const created: string[] = [];
 
@@ -254,6 +275,7 @@ async function main() {
       sections: detail.sections,
     };
     seen.add(slug);
+    all.push(official);
 
     const yamlPath = join(OFFICIAL_DIR, `${slug}.yaml`);
     const next = '# 自動生成（pnpm scrape）。手で編集しないでください\n' + stringify(official, { lineWidth: 0 });
@@ -276,6 +298,7 @@ async function main() {
     .map((f) => f.replace(/\.yaml$/, ''))
     .filter((s) => !seen.has(s));
 
+  await updateReadme(all);
   console.log(`\n更新: ${changed.length}件 / 新規ページ雛形: ${created.length}件`);
   if (removed.length) {
     // 自動削除はしない。人が確認してから消す

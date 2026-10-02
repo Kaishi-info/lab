@@ -32,6 +32,7 @@ jobs:
           add-paths: |
             data/official/
             teachers/
+            README.md
           body: |
             公式サイト（https://kaishi.ac.jp/info-d/teacher/）の変更を自動で取り込みました。
             差分を確認してマージしてください。新しい先生がいる場合は `teachers/` に雛形も追加されています。
