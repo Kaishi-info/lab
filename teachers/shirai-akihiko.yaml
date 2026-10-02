@@ -66,7 +66,7 @@ researchmap: akihiko               # https://researchmap.jp/<ここ>/ → 論文
 
 # ── リンク ───────────────────
 x: o_ob                            # X の ID（@なし）
-github: ka                 # GitHub のユーザー名
+github: kaitas                 # GitHub のユーザー名
 # bluesky: name.bsky.social         # Bluesky のハンドル
 # instagram: your_id
 # note: your_id                     # note.com/<ここ>
