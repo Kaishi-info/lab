@@ -1,7 +1,8 @@
 ---
-// トップの hero: 先生をひとりずつ主役にして左右にローテーションする
-// PC は左右、スマホは上下にスライドして切り替わる。自動で 6 秒ごとに次へ（操作中・動きを減らす設定では止まる）
-// 横スワイプでも切り替えられる。高さは表示中の先生に合わせる
+// トップの hero: 先生をひとりずつ主役にしてローテーションする
+// - 高さは固定（トップの 1 画面に収める）。前の先生が抜けて次の先生が入るスライド（重ならない）
+// - PC は左右、スマホは上下に動く。自動で 6 秒ごとに次へ（操作中・動きを減らす設定では止まる）
+// - 操作: ← → キー、スワイプ（タッチ・トラックパッドの横スワイプ）、ボタン
 import type { Teacher } from '../lib/teachers';
 import { href } from '../lib/teachers';
 import { CLUSTERS } from '../lib/taxonomy';
@@ -12,7 +13,7 @@ interface Props {
 const { teachers } = Astro.props;
 ---
 
-<section class="carousel" aria-roledescription="carousel" aria-label="先生たち">
+<section class="carousel" aria-roledescription="carousel" aria-label="先生たち（← → キーやスワイプで切り替え）" tabindex="-1">
   <div class="car-track" id="car-track">
     {
       teachers.map((t, i) => (
@@ -57,50 +58,108 @@ const { teachers } = Astro.props;
 </section>
 
 <script>
+  const root = document.querySelector<HTMLElement>('.carousel')!;
   const track = document.getElementById('car-track')!;
   const slides = [...track.querySelectorAll<HTMLElement>('.car-slide')];
   const label = document.getElementById('car-i')!;
   const n = slides.length;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const vertical = matchMedia('(max-width: 819px)');
   let i = -1;
+  let busy = false;
   let timer: number | undefined;
 
-  const fit = () => (track.style.height = `${slides[i].offsetHeight}px`);
-  const go = (k: number) => {
-    const next = (k + n) % n;
-    const back = i >= 0 && (k < i || (i === 0 && k === -1)) && !(i === n - 1 && next === 0);
-    slides.forEach((s, j) => {
-      s.classList.toggle('is-active', j === next);
-      s.classList.toggle('is-leaving', j === i && i !== next);
-      s.classList.toggle('back', back);
-      s.inert = j !== next;
-    });
+  // dir: 1 = 次へ（右から/下から入る）、-1 = 前へ
+  function go(k: number, dir = 1) {
+    const next = ((k % n) + n) % n;
+    if (next === i || busy) return;
+    const incoming = slides[next];
+    const outgoing = i >= 0 ? slides[i] : null;
+    const axis = vertical.matches ? 'Y' : 'X';
+    const animate = !reduce && outgoing;
+
+    incoming.style.transition = 'none';
+    incoming.style.transform = animate ? `translate${axis}(${dir * 100}%)` : 'none';
+    incoming.style.visibility = 'visible';
+    incoming.inert = false;
+    void incoming.offsetWidth; // 位置を確定させてから動かす
+    incoming.style.transition = '';
+    incoming.style.transform = 'none';
+
+    if (outgoing) {
+      outgoing.inert = true;
+      if (animate) {
+        busy = true;
+        outgoing.style.transform = `translate${axis}(${-dir * 100}%)`;
+        outgoing.addEventListener(
+          'transitionend',
+          () => {
+            outgoing.style.visibility = 'hidden';
+            busy = false;
+          },
+          { once: true },
+        );
+        setTimeout(() => (busy = false), 800); // 念のため
+      } else {
+        outgoing.style.visibility = 'hidden';
+      }
+    }
     i = next;
     label.textContent = String(i + 1);
-    fit();
-  };
-  // 写真・フォントの読み込みや画面幅の変化で高さが変わったら合わせ直す
-  const ro = new ResizeObserver(() => i >= 0 && fit());
-  slides.forEach((s) => ro.observe(s));
-  document.getElementById('car-prev')!.addEventListener('click', () => (go(i - 1), start()));
-  document.getElementById('car-next')!.addEventListener('click', () => (go(i + 1), start()));
+  }
+  const step = (dir: 1 | -1) => (go(i + dir, dir), start());
 
-  // 横スワイプ
-  let x0: number | null = null;
-  track.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
-  track.addEventListener('touchend', (e) => {
-    if (x0 === null) return;
-    const dx = e.changedTouches[0].clientX - x0;
-    if (Math.abs(dx) > 50) (go(i + (dx < 0 ? 1 : -1)), start());
-    x0 = null;
+  slides.forEach((s) => ((s.style.visibility = 'hidden'), (s.inert = true)));
+  document.getElementById('car-prev')!.addEventListener('click', () => step(-1));
+  document.getElementById('car-next')!.addEventListener('click', () => step(1));
+
+  // ← → キー（入力中・ダイアログ表示中は除く）
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const t = e.target as HTMLElement;
+    if (t.closest('input, textarea, select, [contenteditable], dialog[open]') || document.querySelector('dialog[open]')) return;
+    e.preventDefault();
+    step(e.key === 'ArrowRight' ? 1 : -1);
   });
 
+  // タッチのスワイプ（横・縦どちらでも。縦はスマホのとき）
+  let x0 = 0, y0 = 0, touching = false;
+  track.addEventListener('touchstart', (e) => ((x0 = e.touches[0].clientX), (y0 = e.touches[0].clientY), (touching = true)), { passive: true });
+  track.addEventListener('touchend', (e) => {
+    if (!touching) return;
+    touching = false;
+    const dx = e.changedTouches[0].clientX - x0;
+    const dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+  });
+  // スワイプした指でリンクが開かないように
+  track.addEventListener('click', (e) => {
+    if (Math.abs(lastDx) > 10) e.preventDefault();
+  }, true);
+  let lastDx = 0;
+  track.addEventListener('touchmove', (e) => (lastDx = e.touches[0].clientX - x0), { passive: true });
+  track.addEventListener('touchstart', () => (lastDx = 0), { passive: true });
+
+  // トラックパッドの横スワイプ
+  let wheelLock = 0;
+  track.addEventListener(
+    'wheel',
+    (e) => {
+      if (Math.abs(e.deltaX) < 30 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now < wheelLock) return;
+      wheelLock = now + 700;
+      step(e.deltaX > 0 ? 1 : -1);
+    },
+    { passive: false },
+  );
+
   const stop = () => clearInterval(timer);
-  const start = () => {
+  function start() {
     stop();
-    if (!reduce) timer = window.setInterval(() => go(i + 1), 6000);
-  };
-  const root = track.parentElement!;
+    if (!reduce) timer = window.setInterval(() => go(i + 1, 1), 6000);
+  }
   root.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && stop());
   root.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && start());
   root.addEventListener('focusin', stop);

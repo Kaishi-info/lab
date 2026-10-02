@@ -12,6 +12,8 @@ const used = Object.keys(CLUSTERS).filter((c) => teachers.some((t) => t.data.clu
 ---
 
 <Base>
+  <!-- 最初の 1 画面: 見出し＋カルーセル -->
+  <div class="firstview">
   <section class="hero hero-top">
     <p class="eyebrow">Faculty of Information Design</p>
     <h1>
@@ -25,6 +27,7 @@ const used = Object.keys(CLUSTERS).filter((c) => teachers.some((t) => t.data.clu
   </section>
 
   <HeroCarousel teachers={teachers} />
+  </div>
 
   <section class="entrances" aria-label="あなたの立場から">
     <p class="eyebrow">For you</p>
