@@ -17,7 +17,7 @@ const { teachers } = Astro.props;
     {
       teachers.map((t, i) => (
         <article class="car-slide" aria-roledescription="slide" aria-label={`${i + 1} / ${teachers.length}: ${t.official.name}`}>
-          <a class="car-card glass" href={href(`/${t.slug}/`)}>
+          <a class="car-card glass" data-teacher-link href={href(`/${t.slug}/`)}>
             <div class="car-photo-wrap">
               <img class="car-photo" src={t.photo} alt="" loading={i < 2 ? 'eager' : 'lazy'} />
             </div>

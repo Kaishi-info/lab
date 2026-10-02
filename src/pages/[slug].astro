@@ -31,6 +31,9 @@ const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.lengt
 <Base title={o.name} description={t.headline ?? `${o.name}（${o.position}）`} image={t.photo}>
   <a class="back" href={href('/')}>← 先生一覧</a>
 
+  <!-- トップページのダイアログはこの中身を読み込んで表示する -->
+  <article class="teacher" data-teacher-page>
+
   <!-- 1. Hero -->
   <section class="profile glass">
     <img class="profile-photo" src={t.photo} alt={o.name} />
@@ -505,4 +508,5 @@ const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.lengt
     <span>このページは {o.name} 先生が編集しています。</span>
     <a class="btn" href={editUrl(t.slug)}>GitHub で編集する</a>
   </div>
+  </article>
 </Base>

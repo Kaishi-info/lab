@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import TeacherCard from '../components/TeacherCard.astro';
 import HeroCarousel from '../components/HeroCarousel.astro';
+import TeacherDialog from '../components/TeacherDialog.astro';
 import { getTeachers, href } from '../lib/teachers';
 import { AUDIENCES, CLUSTERS, type ClusterId } from '../lib/taxonomy';
 
@@ -63,6 +64,8 @@ const used = Object.keys(CLUSTERS).filter((c) => teachers.some((t) => t.data.clu
     {teachers.map((t) => <TeacherCard teacher={t} />)}
   </div>
   <p class="empty" id="none" hidden>見つかりませんでした。</p>
+
+  <TeacherDialog />
 </Base>
 
 <script>

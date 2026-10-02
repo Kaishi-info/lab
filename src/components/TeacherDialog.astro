@@ -1,0 +1,90 @@
+---
+// トップページで先生を押したとき、ページを移動せずにダイアログで開く（モーダレス）
+// - 中身は先生ページ（/<ID>/）の [data-teacher-page] をそのまま読み込む
+// - Esc キー・ダイアログの外を押す・× で閉じて一覧に戻る。開いている間は URL も /<ID>/ になる（共有・戻るボタン対応）
+// - JavaScript が無い／読み込みに失敗したときは、ふつうにページへ移動する
+---
+
+<dialog class="t-dialog glass" id="t-dialog" aria-label="先生のページ">
+  <button type="button" class="t-close" aria-label="閉じる（Esc）">×</button>
+  <div class="t-dialog-body" id="t-dialog-body"></div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('t-dialog') as HTMLDialogElement;
+  const body = document.getElementById('t-dialog-body')!;
+  const indexUrl = location.pathname + location.search;
+  const cache = new Map<string, Promise<string | null>>();
+  let opener: HTMLElement | null = null;
+
+  const load = (url: string) => {
+    if (!cache.has(url)) {
+      cache.set(
+        url,
+        fetch(url)
+          .then((r) => (r.ok ? r.text() : null))
+          .then((html) => {
+            if (!html) return null;
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            return doc.querySelector('[data-teacher-page]')?.innerHTML ?? null;
+          })
+          .catch(() => null),
+      );
+    }
+    return cache.get(url)!;
+  };
+
+  async function open(url: string, push = true) {
+    const html = await load(url);
+    if (html === null) {
+      location.href = url; // 読めなければふつうに移動
+      return;
+    }
+    body.innerHTML = html;
+    body.scrollTop = 0;
+    if (!dialog.open) dialog.show(); // モーダレス（後ろのページも操作できる）
+    document.documentElement.classList.add('t-dialog-open');
+    if (push) history.pushState({ teacher: url }, '', url);
+    dialog.querySelector<HTMLElement>('.t-close')!.focus();
+  }
+
+  function close(push = true) {
+    if (!dialog.open) return;
+    dialog.close();
+    document.documentElement.classList.remove('t-dialog-open');
+    if (push) history.pushState(null, '', indexUrl);
+    opener?.focus();
+  }
+
+  // 先生へのリンク（data-teacher-link）を押したらダイアログで開く
+  document.addEventListener('click', (e) => {
+    const me = e as MouseEvent;
+    if (me.button !== 0 || me.metaKey || me.ctrlKey || me.shiftKey || me.altKey) return; // 新しいタブなどはそのまま
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-teacher-link]');
+    if (a) {
+      e.preventDefault();
+      opener = a;
+      open(a.href);
+      return;
+    }
+    // ダイアログの外を押したら閉じる
+    if (dialog.open && !dialog.contains(e.target as Node)) close();
+  });
+  // 先読み（カードに触れたら）
+  document.addEventListener('pointerover', (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-teacher-link]');
+    if (a) load(a.href);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dialog.open) {
+      e.preventDefault();
+      close();
+    }
+  });
+  dialog.querySelector('.t-close')!.addEventListener('click', () => close());
+  // ブラウザの「戻る／進む」
+  addEventListener('popstate', (e) => {
+    if (e.state?.teacher) open(e.state.teacher, false);
+    else close(false);
+  });
+</script>

@@ -25,7 +25,7 @@ const keywords = [
   .toLowerCase();
 ---
 
-<a class="card glass" href={href(`/${t.slug}/`)} data-keywords={keywords} data-clusters={clusters.join(' ')}>
+<a class="card glass" data-teacher-link href={href(`/${t.slug}/`)} data-keywords={keywords} data-clusters={clusters.join(' ')}>
   <div class="card-photo-wrap">
     <img class="card-photo" src={t.photo} alt="" loading="lazy" decoding="async" />
     {t.ohSlots.length > 0 && <span class="card-badge"><span class="dot" />オフィスアワーあり</span>}

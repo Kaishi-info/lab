@@ -235,7 +235,8 @@ async function updateReadme(rows: Official[]) {
         `| ${o.name} | [teachers/${o.slug}.yaml](https://github.com/Kaishi-info/lab/edit/main/teachers/${o.slug}.yaml) | [ページ](${SITE}/${o.slug}/) |`,
     ),
   ].join('\n');
-  await writeFile(path, `${src.slice(0, start)}${head}\n${table}\n${src.slice(end)}`);
+  const next = `${src.slice(0, start)}${head}\n${table}\n${src.slice(end)}`;
+  if (next !== src) await writeFile(path, next); // 変更が無ければ書き換えない
 }
 
 const exists = (p: string) => access(p).then(() => true, () => false);

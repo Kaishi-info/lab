@@ -1,6 +1,7 @@
 # 毎日 1 回、外の情報を取り込む
 # - 公式サイト（教員紹介）の変更 → data/official/ を更新する PR を作る（人が確認してからマージ）
 # - researchmap・RSS の新着 → data/feeds/ を main に直接コミットして公開
+# どちらも変更が無ければ何もしない（PR もコミットも公開もしない）
 name: Watch
 
 on:
@@ -41,6 +42,8 @@ jobs:
 
   feeds:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -51,19 +54,23 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm feeds
       - name: 変更があればコミット
+        id: commit
         run: |
           git add data/feeds
           if git diff --cached --quiet; then
             echo "新着なし"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git commit -m 'chore: researchmap・RSS の新着を取り込み'
             git push
           fi
 
-  # GITHUB_TOKEN による push では Deploy が起動しないので、ここから呼ぶ
+  # GITHUB_TOKEN による push では Deploy が起動しないので、ここから呼ぶ（新着があったときだけ）
   deploy:
     needs: feeds
+    if: needs.feeds.outputs.changed == 'true'
     uses: ./.github/workflows/deploy.yml
     secrets: inherit

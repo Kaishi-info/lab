@@ -17,6 +17,7 @@
   --accent: #3a4fe0;
   --chip: rgba(79, 107, 255, 0.1);
   --orb-opacity: 0.55;
+  --dialog-bg: rgba(246, 247, 255, 0.78);
   --radius: 22px;
   --radius-sm: 14px;
   color-scheme: light;
@@ -34,6 +35,7 @@
     --accent: #8ea0ff;
     --chip: rgba(142, 160, 255, 0.14);
     --orb-opacity: 0.45;
+    --dialog-bg: rgba(22, 24, 40, 0.78);
     color-scheme: dark;
   }
 }
@@ -441,3 +443,43 @@ table.status td.ng { color: var(--muted); }
 .faces .ask-choice { flex-direction: column; text-align: center; padding: 12px 6px; gap: 6px; font-size: 0.9rem; }
 .faces .ask-choice img { width: 56px; height: 56px; }
 .faces .ask-choice span { word-break: keep-all; }
+
+/* PC のトップは 1920×1080（ブラウザの枠込み）で hero + カルーセル + 操作ボタンが 1 画面に収まるよう、画面の高さで詰める */
+@media (min-width: 820px) {
+  .hero-top { padding: clamp(1rem, 3.2vh, 3.5rem) 0 clamp(0.6rem, 1.6vh, 1.2rem); }
+  .hero-top .eyebrow { margin-bottom: 0.4rem; }
+  .hero-top h1 { font-size: clamp(2.4rem, min(8vw, 6vh), 4.6rem); line-height: 1.22; }
+  .hero-top p.lead { margin-top: 0.6rem; font-size: clamp(0.95rem, 1.7vh, 1.1rem); line-height: 1.75; }
+  .car-card { min-height: clamp(320px, 40vh, 440px); }
+  .car-text { padding: clamp(18px, 2.6vh, 40px) 44px; gap: clamp(6px, 0.9vh, 12px); }
+  .car-name { font-size: clamp(2.2rem, 5.4vh, 3.4rem); }
+  .car-headline { font-size: clamp(1.1rem, 2.2vh, 1.5rem); line-height: 1.45; }
+  .car-controls { margin-top: 8px; }
+  .car-btn { width: 44px; height: 44px; }
+}
+
+/* ── 先生のダイアログ（トップページ・モーダレス）── */
+.t-dialog {
+  position: fixed; inset: 0; z-index: 50; margin: auto;
+  width: min(1120px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); height: fit-content;
+  padding: 0; color: var(--text); overflow: hidden;
+  background: var(--dialog-bg);
+  -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid var(--glass-border); border-radius: 28px;
+  box-shadow: 0 30px 80px rgba(20, 24, 60, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.t-dialog[open] { display: flex; flex-direction: column; animation: tIn 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes tIn { from { opacity: 0; transform: translateY(24px) scale(0.98); } }
+.t-dialog-body { overflow-y: auto; overscroll-behavior: contain; padding: 8px 20px 24px; max-height: calc(100dvh - 48px); }
+@media (min-width: 760px) { .t-dialog-body { padding: 12px 28px 28px; } }
+.t-dialog .profile { margin-top: 8px; }
+.t-close { position: absolute; top: 12px; right: 12px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--text); background: var(--glass-strong); border: 1px solid var(--glass-border); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.t-close:hover { background: var(--chip); }
+/* スマホは下からせり上がるシート */
+@media (max-width: 640px) {
+  .t-dialog { inset: auto 0 0; width: 100vw; max-width: 100vw; max-height: 85dvh; border-radius: 24px 24px 0 0; }
+  .t-dialog-body { max-height: 85dvh; padding: 8px 14px 24px; }
+  .t-dialog[open] { animation-name: tUp; }
+  @keyframes tUp { from { transform: translateY(40%); opacity: 0; } }
+}
+@media (prefers-reduced-motion: reduce) { .t-dialog[open] { animation: none; } }
