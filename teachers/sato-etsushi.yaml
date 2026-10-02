@@ -1,0 +1,41 @@
+# 佐藤 悦志 先生のページ
+# 公式サイト由来の情報（氏名・職歴など）は data/official/sato-etsushi.yaml に自動で入ります。ここには書かなくてOK。
+# 書きたい項目の先頭の「# 」を消して使ってください。書き方: README.md / 全項目の定義: src/content.config.ts
+
+# researchmap: your-permalink      # https://researchmap.jp/<ここ>/ の部分。業績が自動で「最近の活動」に載ります
+# x: your_handle                   # X(Twitter) のID（@なし）
+# website: https://example.com     # 研究室サイト・CVサイトなど
+# feeds:                           # ブログ・note などの RSS/Atom URL。新着が自動で載ります
+#   - https://note.com/xxxx/rss
+
+# lab:
+#   name: ○○研究室
+#   description: 研究室の一行紹介
+
+# officeHours:
+#   - day: 水                       # 月〜日 / 随時
+#     start: "18:00"
+#     end: "19:00"
+#     place: オンライン（Zoom）
+#     note: 前日までにSlackで連絡ください
+
+# message: |
+#   相談しにきてほしい学生へのメッセージ
+# lookingFor:
+#   - こんな学生に来てほしい、を短く
+
+# courses:                         # 担当科目（シラバスの「授業概要」「到達目標」から）
+#   - name: 科目名
+#     term: 前期
+#     grade: 2年次
+#     summary: 授業概要
+#     outcomes:
+#       - 何ができるようになるか
+
+# topics:
+#   - date: 2026-10-01
+#     title: 最近のトピック
+#     url: https://example.com
+
+# bio: |
+#   自由に書ける自己紹介・研究室紹介（Markdown が使えます）

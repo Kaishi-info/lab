@@ -1,0 +1,46 @@
+# 自動生成（pnpm scrape）。手で編集しないでください
+slug: takeoka-atsue
+sourceUrl: https://kaishi.ac.jp/info-d/teacher/takeoka-atsue/
+order: 7
+name: 竹岡 篤永
+nameEn: Takeoka Atsue
+title: 教授
+position: 情報デザイン学部 教授
+degrees:
+  - 博士(知識科学)
+  - 修士(教授システム学)
+specialty:
+  - 教育工学
+  - インストラクショナルデザイン
+photo: https://kaishi.ac.jp/info-d/cms/wp-content/uploads/2026/06/img-a-takeoka.jpg
+messages:
+  - audience: 高校生のみなさんへ
+    heading: わかる喜びが未来を広げる！
+    body: 学ぶことには、「わかるって、ちょっと気持ちいい」という瞬間があります。まだ将来が決まっていなくても、その小さな喜びを積み重ねることで、できることが広がっていきます。あなたが、自分のペースで世界をひらいていく手助けができればと思っています。一緒に学んでみませんか。
+  - audience: 社会人のみなさんへ
+    heading: 自分のペースで深める大人の学び
+    body: 大人になってからの学びは、これまでの経験とつながることで、より深い“わかる喜び”になります。忙しい日々でも、少しずつ前に進むことで、新しい視点や選択肢が生まれます。自分の生活に合わせて続けられる学びを、一緒に作っていきましょう。
+sections:
+  - label: 現職
+    lines:
+      - 開志創造大学 情報デザイン学部 教授
+  - label: 学位
+    lines:
+      - 修士（知識科学）
+      - 博士（知識科学）
+      - 修士（教授システム学）
+  - label: 専門分野
+    lines:
+      - 教育工学
+      - インストラクショナルデザイン
+      - eラーニング
+      - PBL
+      - 学習支援システム
+  - label: 現在所属の学会
+    lines:
+      - 日本教育工学会
+      - 教育システム情報学会
+      - 日本教育メディア学会
+  - label: 研究業績
+    lines:
+      - ▸researchmap

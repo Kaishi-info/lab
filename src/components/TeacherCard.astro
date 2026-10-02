@@ -1,0 +1,52 @@
+---
+import type { Teacher } from '../lib/teachers';
+
+interface Props {
+  teacher: Teacher;
+}
+const { teacher: t } = Astro.props;
+const o = t.official;
+// カードの一言: 先生が書いたメッセージ > 公式サイトの見出し
+const msg = t.data.message ?? o.messages[0]?.heading;
+const latest = t.activities[0];
+const hasOfficeHours = (t.data.officeHours?.length ?? 0) > 0;
+const keywords = [o.name, o.nameEn, o.title, ...t.specialty, t.data.lab?.name ?? ''].join(' ').toLowerCase();
+---
+
+<a class="card glass" href={`/${t.slug}/`} data-keywords={keywords}>
+  <div class="card-top">
+    <img class="avatar" src={t.photo} alt="" loading="lazy" decoding="async" />
+    <div>
+      <p class="card-name">{o.name}</p>
+      <p class="card-en">{o.nameEn}</p>
+      <p class="card-title">{o.title}{t.data.lab && ` · ${t.data.lab.name}`}</p>
+    </div>
+  </div>
+  <div class="card-body">
+    {
+      t.specialty.length > 0 && (
+        <ul class="chips">
+          {t.specialty.map((s) => (
+            <li class="chip">{s}</li>
+          ))}
+        </ul>
+      )
+    }
+    {msg && <p class="card-msg">{msg}</p>}
+    {
+      (hasOfficeHours || latest) && (
+    <div class="card-foot">
+      {
+        hasOfficeHours && (
+          <span class="status">
+            <span class="dot" />
+            オフィスアワーあり
+          </span>
+        )
+      }
+      {latest && <span>最近: {latest.title.length > 28 ? latest.title.slice(0, 28) + '…' : latest.title}</span>}
+    </div>
+      )
+    }
+  </div>
+</a>

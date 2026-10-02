@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+import { REPO } from '../lib/teachers';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+const { title, description = '開志創造大学 情報デザイン学部の先生たちが、自分で書いて更新している教員ページです。', image } = Astro.props;
+const siteName = 'TEACHERS — 情報デザイン学部';
+const fullTitle = title ? `${title} | ${siteName}` : `${siteName} | 開志創造大学`;
+const path = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#4f6bff" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    {image && <meta property="og:image" content={image} />}
+    <link rel="canonical" href={new URL(path, Astro.site)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap"
+    />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <div class="orb o4"></div>
+    </div>
+
+    <header class="site-header">
+      <div class="wrap">
+        <div class="header-inner glass">
+          <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-text">
+              <span class="brand-sub">開志創造大学 情報デザイン学部</span>
+              <span class="brand-main">TEACHERS</span>
+            </span>
+          </a>
+          <nav class="site-nav" aria-label="メイン">
+            <a href="/" aria-current={path === '/' ? 'page' : undefined}>先生</a>
+            <a href="/office-hours/" aria-current={path === '/office-hours/' ? 'page' : undefined}>オフィスアワー</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="glass">
+          <p>
+            このサイトは先生たち自身が <a href={REPO}>GitHub</a> で編集しています。
+            公式の教員紹介は <a href="https://kaishi.ac.jp/info-d/teacher/">大学公式サイト</a> へ。
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

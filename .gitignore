@@ -1,0 +1,23 @@
+# 依存・生成物
+node_modules/
+dist/
+.astro/
+.wrangler/
+
+# 評価シートなどの非公開資料（絶対にコミットしない）
+.private/
+*.xlsx
+*.xls
+*.csv
+*.pdf
+
+# 秘密の値
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# OS・エディタ
+.DS_Store
+Thumbs.db
+.idea/

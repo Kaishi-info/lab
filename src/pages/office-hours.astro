@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import { getTeachers } from '../lib/teachers';
+import { DAYS } from '../content.config';
+
+const teachers = await getTeachers();
+const byDay = DAYS.map((day) => ({
+  day,
+  slots: teachers
+    .flatMap((t) => (t.data.officeHours ?? []).filter((h) => h.day === day).map((h) => ({ t, h })))
+    .sort((a, b) => (a.h.start ?? '99').localeCompare(b.h.start ?? '99')),
+})).filter((g) => g.slots.length > 0);
+const without = teachers.filter((t) => !t.data.officeHours?.length);
+---
+
+<Base title="オフィスアワー" description="情報デザイン学部の先生たちのオフィスアワー（質問・相談できる時間）の一覧です。">
+  <section class="hero">
+    <p class="eyebrow">Office Hours</p>
+    <h1><span class="grad">いつ</span>相談できる？</h1>
+    <p class="lead">オフィスアワーは、授業のこと・研究のこと・進路のことを、先生に気軽に相談できる時間です。</p>
+  </section>
+
+  {
+    byDay.length ? (
+      <div class="week">
+        {byDay.map((g) => (
+          <section class="day-card glass">
+            <h2>
+              <span class="oh-day">{g.day}</span>
+              {g.day === '随時' ? '随時（要連絡）' : `${g.day}曜日`}
+            </h2>
+            <ul>
+              {g.slots.map(({ t, h }) => (
+                <li>
+                  <a href={`/${t.slug}/`}>
+                    <img class="avatar" src={t.photo} alt="" loading="lazy" />
+                    <span>
+                      <b>{t.official.name}</b>
+                      <span class="oh-sub">
+                        {h.start || h.end ? `${h.start ?? ''}–${h.end ?? ''}` : '時間は相談'}
+                        {h.place && ` · ${h.place}`}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <p class="empty">まだ登録されていません。</p>
+    )
+  }
+
+  {
+    without.length > 0 && (
+      <p class="empty" style="margin-top:2rem">
+        まだ登録していない先生: {without.map((t) => t.official.name).join('、')}
+      </p>
+    )
+  }
+</Base>

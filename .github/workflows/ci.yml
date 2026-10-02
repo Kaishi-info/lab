@@ -1,0 +1,27 @@
+# PR ごとに YAML の書き方チェック（スキーマ検証）とビルドを行う
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 非公開ファイルが混ざっていないか
+        run: |
+          if git ls-files | grep -Ei '\.(xlsx|xls|csv|pdf)$|^\.private/'; then
+            echo "::error::評価シートなどの非公開ファイルはコミットできません"
+            exit 1
+          fi
+      - run: pnpm check
+      - run: pnpm build

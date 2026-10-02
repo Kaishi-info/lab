@@ -1,0 +1,68 @@
+# 毎日 1 回、外の情報を取り込む
+# - 公式サイト（教員紹介）の変更 → data/official/ を更新する PR を作る（人が確認してからマージ）
+# - researchmap・RSS の新着 → data/feeds/ を main に直接コミットして公開
+name: Watch
+
+on:
+  schedule:
+    - cron: '0 18 * * *' # 毎日 03:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  official:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm scrape | tee scrape.log
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/official-sync
+          title: '公式サイトの教員紹介が更新されました（自動）'
+          commit-message: 'chore: 公式サイトの教員紹介を取り込み'
+          add-paths: |
+            data/official/
+            teachers/
+          body: |
+            公式サイト（https://kaishi.ac.jp/info-d/teacher/）の変更を自動で取り込みました。
+            差分を確認してマージしてください。新しい先生がいる場合は `teachers/` に雛形も追加されています。
+          labels: automated
+          delete-branch: true
+
+  feeds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm feeds
+      - name: 変更があればコミット
+        run: |
+          git add data/feeds
+          if git diff --cached --quiet; then
+            echo "新着なし"
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'chore: researchmap・RSS の新着を取り込み'
+            git push
+          fi
+
+  # GITHUB_TOKEN による push では Deploy が起動しないので、ここから呼ぶ
+  deploy:
+    needs: feeds
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

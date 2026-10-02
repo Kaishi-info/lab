@@ -1,0 +1,182 @@
+# 自動生成（pnpm feeds）。手で編集しないでください
+items:
+  - source: researchmap
+    kind: 論文
+    title: IVRC2023（Interverse Virtual Reality Challenge）開催報告
+    date: 2024-03-31
+    url: https://doi.org/10.18974/jvrsj.29.1_39
+    venue: 日本バーチャルリアリティ学会誌
+  - source: researchmap
+    kind: 発表・講演
+    title: クリエイティブAIが拓くAIDX 「おもしろいAI体験」を産業にするには
+    date: 2024-02-05
+    url: https://aitc-openlab.connpass.com/event/307063/
+    venue: AITC 第12回オープンラボ
+  - source: researchmap
+    kind: 論文
+    title: "Avatar Fusion Karaoke: Research and development on multi-user music play VR experience in the metaverse"
+    date: 2023-06-26
+    url: https://doi.org/10.48550/arXiv.2308.02139
+    venue: IEEE International Conference on Metaverse Computing, Networking and Applications (IEEE MetaCom 2023)
+  - source: researchmap
+    kind: 発表・講演
+    title: UX開発から生成AIへ メタバース研究開発における ユーザ生成コンテンツとコミュニケーション設計
+    date: 2023-06-23
+    url: https://researchmap.jp/akihiko/presentations/42703271
+    venue: 画像電子学会 Advanced Image Seminar 2023 (AIS2023)
+  - source: researchmap
+    kind: 論文
+    title: IVRC2022（Interverse Virtual Reality Challenge）開催報告
+    date: 2023-03-31
+    url: https://doi.org/10.18974/jvrsj.28.1_26
+    venue: 日本バーチャルリアリティ学会誌
+  - source: researchmap
+    kind: 発表・講演
+    title: 人間×機械×知能 メタバースにおけるユーザーエクスペリエンスの研究開発
+    date: 2023-03-06
+    url: https://speakerdeck.com/vrstudiolab/ren-jian-xji-jie-xzhi-neng-metabasuniokeruyuzaekusuperiensunoyan-jiu-kai-fa
+    venue: 日本機械学会 情報・知能・精密機器部門（IIP部門）講演会
+  - source: researchmap
+    kind: 記事・解説
+    title: 文化・技術・研究史で読み解く令和のメタバースの研究開発
+    date: 2023-03
+    url: https://doi.org/10.1587/bplus.16.285
+    venue: 電子情報通信学会 通信ソサイエティマガジン
+  - source: researchmap
+    kind: 発表・講演
+    title: AI神絵師はITエンジニアの未来をどう変えるのか？～メタバースR&DからみたAI画像生成のトレンド～
+    date: 2023-02-10
+    url: https://researchmap.jp/akihiko/presentations/41494919
+    venue: Developers Summit 2023
+  - source: researchmap
+    kind: 書籍
+    title: "AIとコラボして神絵師になる : 論文から読み解くStable Diffusion"
+    date: 2022-10-28
+    url: http://ci.nii.ac.jp/ncid/BD00700802
+    venue: インプレスR&D,インプレス (発売)
+  - source: researchmap
+    kind: 発表・講演
+    title: Entertainment VR to Metaverse - “Creating People who creates”
+    date: 2022-09-27
+    url: https://art-science.org/cyberworlds/cw22/
+    venue: Cyberworlds 2022
+  - source: researchmap
+    kind: 発表・講演
+    title: メタバースと"遊び研究"の交差点
+    date: 2022-02-11
+    url: https://researchmap.jp/akihiko/presentations/36387166
+    venue: 第12回理系集会
+  - source: researchmap
+    kind: 論文
+    title: 学会オンライン化・VR開催の幕開け
+    date: 2020-06-30
+    url: https://doi.org/10.18974/jvrsj.25.2_35
+    venue: 日本バーチャルリアリティ学会誌
+  - source: researchmap
+    kind: 論文
+    title: Neck strap haptics
+    date: 2019-07-28
+    url: https://doi.org/10.1145/3306214.3338562
+    venue: ACM SIGGRAPH 2019 Posters
+  - source: researchmap
+    kind: 論文
+    title: Effectiveness of facial animated avatar and voice transformer in elearning programming course
+    date: 2019-07-28
+    url: https://doi.org/10.1145/3306214.3338540
+    venue: ACM SIGGRAPH 2019 Posters, SIGGRAPH 2019
+  - source: researchmap
+    kind: 論文
+    title: Evaluation of Avatar and Voice Transform in Programming E-Learning Lectures
+    date: 2019-07
+    url: https://doi.org/10.1145/3308532.3329430
+    venue: Proceedings of the 19th ACM International Conference on Intelligent Virtual Agents
+  - source: researchmap
+    kind: 論文
+    title: "Widespread the hapbeat: Tension based necklace type haptic display"
+    date: "2019"
+    url: https://researchmap.jp/akihiko/published_papers/47121575
+    venue: Proceedings of the International Display Workshops
+  - source: researchmap
+    kind: 論文
+    title: "MasQueRade: Onsite QR code based VR experience evaluation system using sanitary mask"
+    date: 2018-04-04
+    url: https://doi.org/10.1145/3234253.3234315
+    venue: ACM International Conference Proceeding Series
+  - source: researchmap
+    kind: 論文
+    title: MasQueRade
+    date: 2018-04-04
+    url: https://doi.org/10.1145/3234253.3234315
+    venue: Proceedings of the Virtual Reality International Conference - Laval Virtual
+  - source: researchmap
+    kind: 論文
+    title: 小特集1 IVRC2017（第25回 国際学生対抗バーチャルリアリティコンテスト）開催報告
+    date: 2017-12-31
+    url: https://doi.org/10.18974/jvrsj.22.4_46
+    venue: 日本バーチャルリアリティ学会誌
+  - source: researchmap
+    kind: 記事・解説
+    title: SIGGRAPH 2017見聞記
+    date: 2017-11
+    url: http://ci.nii.ac.jp/naid/40021375782
+    venue: 映像情報メディア学会誌 = The journal of the Institute of Image Information and Television Engineers
+  - source: researchmap
+    kind: 論文
+    title: '"Real baby-real family"-VR entertainment baby interaction system'
+    date: 2017-07-30
+    url: https://doi.org/10.1145/3084822.3084830
+    venue: ACM SIGGRAPH 2017 Emerging Technologies, SIGGRAPH 2017
+  - source: researchmap
+    kind: 論文
+    title: “Real baby - Real family”- Holdable tangible baby VR
+    date: 2017-03-22
+    url: https://doi.org/10.1145/3110292.3110297
+    venue: ACM International Conference Proceeding Series
+  - source: researchmap
+    kind: 論文
+    title: Manga Generator, a future of interactive manga media
+    date: 2016-12-04
+    url: https://doi.org/10.1145/3011549.3015156
+    venue: ACM International Conference Proceeding Series
+  - source: researchmap
+    kind: 記事・解説
+    title: SIGGRAPH 2016見聞記
+    date: 2016-11
+    url: http://ci.nii.ac.jp/naid/40020998682
+    venue: 映像情報メディア学会誌 = The journal of the Institute of Image Information and Television Engineers
+  - source: researchmap
+    kind: 受賞
+    title: Top 500 startups
+    date: 2016-10
+    url: https://researchmap.jp/akihiko/awards/3207305
+    venue: Hello Tomorrow Global Summit
+  - source: researchmap
+    kind: 受賞
+    title: 芸術科学会貢献賞
+    date: 2016-10
+    url: https://researchmap.jp/akihiko/awards/3207304
+    venue: 芸術科学会
+  - source: researchmap
+    kind: 受賞
+    title: インタラクティブセッション「オーディエンス賞」2位
+    date: 2016-08
+    url: https://researchmap.jp/akihiko/awards/3207303
+    venue: ゲーム開発者会議「CEDEC2016」
+  - source: researchmap
+    kind: 論文
+    title: Some Considerations of Age Estimation Method for "Augmented TV" Based on Posture of Gripping Tablet PC
+    date: 2016-06-22
+    url: https://doi.org/10.1007/978-3-319-40548-3_87
+    venue: HCI International 2016 – Posters' Extended Abstracts. HCI 2016. Communications in Computer and Information Science, Springer
+  - source: researchmap
+    kind: 記事・解説
+    title: 世界から見た日本のVR (20周年記念特集 世界のVR)
+    date: 2016-06
+    url: http://ci.nii.ac.jp/naid/40020973135
+    venue: 日本バーチャルリアリティ学会誌 = Journal of the Virtual Reality Society of Japan
+  - source: researchmap
+    kind: 論文
+    title: Glassless augmented display for public signage
+    date: 2016-03-23
+    url: https://doi.org/10.1145/2927929.2927930
+    venue: ACM International Conference Proceeding Series

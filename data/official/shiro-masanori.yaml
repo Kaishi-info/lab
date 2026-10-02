@@ -1,0 +1,41 @@
+# 自動生成（pnpm scrape）。手で編集しないでください
+slug: shiro-masanori
+sourceUrl: https://kaishi.ac.jp/info-d/teacher/shiro-masanori/
+order: 10
+name: 城 真範
+nameEn: Shiro Masanori
+title: 教授
+position: 情報デザイン学部 教授
+degrees:
+  - 博士(情報理工学)
+specialty:
+  - カオス・複雑系
+photo: https://kaishi.ac.jp/info-d/cms/wp-content/uploads/2026/06/img-m-shiro.jpg
+messages:
+  - audience: 高校生のみなさんへ
+    heading: AIと自由を使い倒せ。君が作る、一期生の歴史
+    body: いい時代になったものよ。ふとんの中で授業をきける。バックパッカーとして外国を放浪しながらでも授業をきける。そして学費は超安い。バイトだけでなんとかなる。あまった時間を個性的に使える。それに、なんといっても新しい大学の一期生なんて気分いいじゃないか。
+  - audience: 社会人のみなさんへ
+    heading: 失われない一生の財産を。知識は裏切らない
+    body: 実は僕も就職してから学校に通い直した社会人学生だった。日々削られている人生の残り時間をどう使うか結構悩んだが、知識を得るために努力することは悪くない選択肢だ。美味いメシだって1年も経てば忘れる。人に尽くしても人は去っていく。でも知識は残る。この学校を見つけたあなたは幸運なのだと思う。
+sections:
+  - label: 現職
+    lines:
+      - 国立研究開発法人 産業技術総合研究所 人間情報インタラクション研究部門 脳数理グループ 主任研究員
+      - 開志創造大学 情報デザイン学部 教授
+  - label: 学歴・学位
+    lines:
+      - 東京大学大学院理学系研究科物理学専攻（修士課程）修了 修士（理学）
+      - 東京大学大学院情報理工学系研究科数理情報学専攻（博士課程）修了 博士（情報理工学）
+  - label: 職歴
+    lines:
+      - 平成14年4月 - 現在｜独立行政法人産業技術総合研究所 入所
+      - 令和8年4月 - 現在｜開志創造大学情報デザイン学部 教授
+  - label: 現在所属の学会
+    lines:
+      - 日本物理学会
+      - 電子情報通信学会
+  - label: 学位論文
+    lines:
+      - 修士（理学）「CeCu2(Si1-xGex)2の高圧下における電気抵抗」東京大学
+      - 博士（情報理工学）「A study on sounds of musical instruments as deterministic chaos」東京大学

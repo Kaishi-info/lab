@@ -1,0 +1,38 @@
+# 自動生成（pnpm scrape）。手で編集しないでください
+slug: kageyama-akihisa
+sourceUrl: https://kaishi.ac.jp/info-d/teacher/kageyama-akihisa/
+order: 16
+name: 蔭山 晶久
+nameEn: Kageyama Akihisa
+title: 准教授
+position: 情報デザイン学部 准教授
+degrees:
+  - 修士(学術)
+specialty:
+  - 建築学
+photo: https://kaishi.ac.jp/info-d/cms/wp-content/uploads/2026/06/img-a-kageyama.jpg
+messages:
+  - audience: 高校生のみなさんへ
+    heading: ワクワクする未来を一緒に創ろう
+    body: 夢のようなくらしを実際の形にして作っていくことが、建築にはあります。建物やまちのしくみや歴史を学びながら、新しいアプローチ方法やアイデアを発想する仕方を身につけ、誰もがワクワクするような未来を、みなさんと一緒に創っていきましょう！
+  - audience: 社会人のみなさんへ
+    heading: 建築×AIで社会に貢献する力を
+    body: 建築の考え方を土台に、くらしやまちをより良くする視点を学べる講座です。AIの活用やサービスづくりの基礎となる方法を学び、実務にも生かしやすい内容となっています。新しい視点とスキルを身につけ、社会へ貢献できる一歩を、一緒に始めましょう。
+sections:
+  - label: 現職
+    lines:
+      - 株式会社 蔭山晶久アーキテクツ 代表取締役
+      - 開志創造大学 情報デザイン学部 准教授
+  - label: 学歴・学位
+    lines:
+      - 広島大学 工学部 第４類（建築学課程：建築計画学）卒業 工学士
+      - 北海道大学大学院 環境科学院（旧：環境科学研究科 環境計画学専攻 建築計画学第一講座）博士前期課程修了 学術修士
+  - label: 職歴
+    lines:
+      - 平成8年4月 - 平成20年2月｜Rogers Stirk Harbour + Partners Japan（旧：Richard Rogers Partnership Japan）
+      - 平成20年2月 - 平成28年2月｜Rogers Stirk Harbour + Partners（英国本社へ転属）
+      - 平成28年9月 - 現在｜株式会社 蔭山晶久アーキテクツ 代表取締役/主宰
+      - 令和8年4月 - 現在｜開志創造大学情報デザイン学部 准教授
+  - label: 学位論文
+    lines:
+      - 修士（学術）「沿岸漁村集落群の空間構造の特性について 北海道積丹町の漁業生産活動を中心として#2」北海道大学

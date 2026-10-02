@@ -1,0 +1,33 @@
+{
+  "name": "kaishi-teachers",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "check": "astro check",
+    "scrape": "node scripts/scrape-official.ts",
+    "feeds": "node scripts/fetch-feeds.ts",
+    "import-eval": "node scripts/import-eval-sheet.ts",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "astro": "^7.3.5",
+    "cheerio": "^1.2.0",
+    "fast-xml-parser": "^5.11.2",
+    "marked": "^18.0.14",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.6.4",
+    "exceljs": "^4.4.0",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.146.0"
+  }
+}

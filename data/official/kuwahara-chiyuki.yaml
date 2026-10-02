@@ -1,0 +1,45 @@
+# 自動生成（pnpm scrape）。手で編集しないでください
+slug: kuwahara-chiyuki
+sourceUrl: https://kaishi.ac.jp/info-d/teacher/kuwahara-chiyuki/
+order: 14
+name: 桑原 千幸
+nameEn: Kuwahara Chiyuki
+title: 准教授
+position: 情報デザイン学部 准教授
+degrees:
+  - 博士(学術)
+specialty:
+  - 教育工学
+  - インストラクショナルデザイン
+  - 図書館情報学
+photo: https://kaishi.ac.jp/info-d/cms/wp-content/uploads/2026/06/img-c-kuwabara.jpg
+messages:
+  - audience: 高校生のみなさんへ
+    heading: 新しい学びに一歩踏み出そう！
+    body: 通信制の大学では、自分のペースで学ぶ力がとても大切です。人との関わり方や自分に合った学び方を身につけながら、将来の自分について考えていきましょう。高校とは少しちがう、新しい学びに一歩踏み出してみませんか。
+  - audience: 社会人のみなさんへ
+    heading: 両立しながらキャリアと学びを磨く
+    body: 仕事や生活と両立しながら学べるよう、自分に合った学び方を身につけていきます。多様な人と協力する力や、学びをふり返る方法を身につけながら、これまでの経験を活かしつつ、これからの生き方を描いていきましょう。
+sections:
+  - label: 現職
+    lines:
+      - 大阪経済大学 経営学部 准教授
+      - 開志創造大学 情報デザイン学部 准教授
+  - label: 学位
+    lines:
+      - 修士（教育学）（京都大学）
+      - 博士（学術）（熊本大学）
+  - label: 専門分野
+    lines:
+      - 教育工学
+      - 図書館情報学
+  - label: 現在所属の学会
+    lines:
+      - 日本教育工学会
+      - 教育システム情報学会
+      - 日本キャリア教育学会
+      - 初年次教育学会
+      - 日本図書館研究会
+  - label: 研究業績
+    lines:
+      - ▸researchmap

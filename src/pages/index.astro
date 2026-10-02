@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import TeacherCard from '../components/TeacherCard.astro';
+import { getTeachers } from '../lib/teachers';
+
+const teachers = await getTeachers();
+---
+
+<Base>
+  <section class="hero">
+    <p class="eyebrow">Faculty of Information Design</p>
+    <h1>
+      <span class="grad">先生たち</span>に、<br />会いにいこう。
+    </h1>
+    <p class="lead">
+      研究していること、最近のできごと、オフィスアワー、そして「こんな人に相談に来てほしい」。
+      情報デザイン学部の先生たちが、自分の言葉で書いて更新しているページです。
+    </p>
+  </section>
+
+  <div class="toolbar glass" role="search">
+    <input id="q" class="search" type="search" placeholder="名前・専門分野でさがす（例: AI、デザイン、経営）" aria-label="先生をさがす" />
+    <span class="count"><span id="count">{teachers.length}</span> / {teachers.length}</span>
+  </div>
+
+  <div class="grid" id="grid">
+    {teachers.map((t) => <TeacherCard teacher={t} />)}
+  </div>
+  <p class="empty" id="none" hidden>見つかりませんでした。</p>
+</Base>
+
+<script>
+  const q = document.querySelector<HTMLInputElement>('#q')!;
+  const cards = [...document.querySelectorAll<HTMLElement>('#grid .card')];
+  const count = document.querySelector('#count')!;
+  const none = document.querySelector<HTMLElement>('#none')!;
+  q.addEventListener('input', () => {
+    const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
+    let n = 0;
+    for (const c of cards) {
+      const hit = words.every((w) => c.dataset.keywords!.includes(w));
+      c.hidden = !hit;
+      if (hit) n++;
+    }
+    count.textContent = String(n);
+    none.hidden = n > 0;
+  });
+</script>
