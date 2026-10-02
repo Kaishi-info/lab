@@ -1,6 +1,7 @@
 ---
 // トップの hero: 先生をひとりずつ主役にして左右にローテーションする
-// スマホはスワイプ（scroll-snap）、PC は左右ボタン。自動で 6 秒ごとに次へ（操作中・動きを減らす設定では止まる）
+// PC は左右、スマホは上下にスライドして切り替わる。自動で 6 秒ごとに次へ（操作中・動きを減らす設定では止まる）
+// 横スワイプでも切り替えられる。高さは表示中の先生に合わせる
 import type { Teacher } from '../lib/teachers';
 import { href } from '../lib/teachers';
 import { CLUSTERS } from '../lib/taxonomy';
@@ -36,7 +37,7 @@ const { teachers } = Astro.props;
               {t.courses.length > 0 && (
                 <ul class="chips course-tags">
                   {t.courses.slice(0, 4).map((c) => (
-                    <li class="chip course">{c.name}</li>
+                    <li class="chip ctag">{c.name}</li>
                   ))}
                   {t.courses.length > 4 && <li class="chip outline">ほか{t.courses.length - 4}科目</li>}
                 </ul>
@@ -49,9 +50,9 @@ const { teachers } = Astro.props;
     }
   </div>
   <div class="car-controls">
-    <button type="button" class="car-btn" id="car-prev" aria-label="前の先生">←</button>
+    <button type="button" class="car-btn" id="car-prev" aria-label="前の先生"><span class="h">←</span><span class="v">↑</span></button>
     <span class="car-count" aria-live="polite"><span id="car-i">1</span> / {teachers.length}</span>
-    <button type="button" class="car-btn" id="car-next" aria-label="次の先生">→</button>
+    <button type="button" class="car-btn" id="car-next" aria-label="次の先生"><span class="h">→</span><span class="v">↓</span></button>
   </div>
 </section>
 
@@ -61,40 +62,52 @@ const { teachers } = Astro.props;
   const label = document.getElementById('car-i')!;
   const n = slides.length;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let i = 0;
+  let i = -1;
   let timer: number | undefined;
 
-  const go = (k: number, smooth = true) => {
-    i = (k + n) % n;
-    track.scrollTo({ left: slides[i].offsetLeft - track.offsetLeft, behavior: smooth && !reduce ? 'smooth' : 'auto' });
-    label.textContent = String(i + 1);
-  };
-  // スワイプで動いたときに番号を合わせる
-  let raf = 0;
-  track.addEventListener('scroll', () => {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(() => {
-      i = Math.round(track.scrollLeft / track.clientWidth);
-      label.textContent = String(i + 1);
+  const fit = () => (track.style.height = `${slides[i].offsetHeight}px`);
+  const go = (k: number) => {
+    const next = (k + n) % n;
+    const back = i >= 0 && (k < i || (i === 0 && k === -1)) && !(i === n - 1 && next === 0);
+    slides.forEach((s, j) => {
+      s.classList.toggle('is-active', j === next);
+      s.classList.toggle('is-leaving', j === i && i !== next);
+      s.classList.toggle('back', back);
+      s.inert = j !== next;
     });
+    i = next;
+    label.textContent = String(i + 1);
+    fit();
+  };
+  // 写真・フォントの読み込みや画面幅の変化で高さが変わったら合わせ直す
+  const ro = new ResizeObserver(() => i >= 0 && fit());
+  slides.forEach((s) => ro.observe(s));
+  document.getElementById('car-prev')!.addEventListener('click', () => (go(i - 1), start()));
+  document.getElementById('car-next')!.addEventListener('click', () => (go(i + 1), start()));
+
+  // 横スワイプ
+  let x0: number | null = null;
+  track.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+  track.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) (go(i + (dx < 0 ? 1 : -1)), start());
+    x0 = null;
   });
-  document.getElementById('car-prev')!.addEventListener('click', () => (go(i - 1), restart()));
-  document.getElementById('car-next')!.addEventListener('click', () => (go(i + 1), restart()));
 
   const stop = () => clearInterval(timer);
   const start = () => {
     stop();
     if (!reduce) timer = window.setInterval(() => go(i + 1), 6000);
   };
-  const restart = () => start();
   const root = track.parentElement!;
-  root.addEventListener('pointerenter', stop);
-  root.addEventListener('pointerleave', start);
+  root.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && stop());
+  root.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && start());
   root.addEventListener('focusin', stop);
   root.addEventListener('focusout', start);
   document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
 
   // 毎回ちがう先生から始める（全員が平等に主役になるように）
-  go(Math.floor(Math.random() * n), false);
+  go(Math.floor(Math.random() * n));
   start();
 </script>

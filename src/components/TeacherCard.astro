@@ -44,7 +44,7 @@ const keywords = [
       t.courses.length > 0 && (
         <ul class="chips course-tags" aria-label="担当科目">
           {t.courses.slice(0, 3).map((c) => (
-            <li class="chip course">{c.name}</li>
+            <li class="chip ctag">{c.name}</li>
           ))}
           {t.courses.length > 3 && <li class="chip outline">+{t.courses.length - 3}</li>}
         </ul>
