@@ -274,9 +274,16 @@ dl.cv ul { margin: 0; padding-left: 1.2em; font-size: 0.9rem; }
 @media (min-width: 820px) { .car-card { grid-template-columns: minmax(280px, 42%) 1fr; grid-template-rows: 1fr; } }
 .car-photo-wrap { position: relative; overflow: hidden; min-height: 0; }
 .car-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
-.car-text { min-height: 0; overflow: hidden; padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.car-text { min-height: 0; overflow: hidden; padding: 16px 20px 18px; display: flex; flex-direction: column; gap: 10px; container-type: size; }
 @media (min-width: 820px) { .car-text { padding: clamp(20px, 4vh, 40px) clamp(24px, 3vw, 44px); gap: clamp(8px, 1.6vh, 14px); } }
-@media (max-width: 819px) { .car-text { justify-content: flex-start; } }
+/* 上下中央そろえは auto の余白で行う。justify-content: center だと、入りきらないとき上にもはみ出して見えなくなる */
+@media (min-width: 820px) { .car-text > :first-child { margin-top: auto; } .car-text > :last-child { margin-bottom: auto; } }
+/* カードの高さに合わせて中身を減らす（上から順に大事: 職位・名前・キャッチコピー・分野 → 科目 → ボタン） */
+@container (max-height: 440px) { .car-text .course-tags { max-height: 2.2rem; } }
+@container (max-height: 380px) { .car-cta { display: none; } }
+@container (max-height: 320px) { .car-text .course-tags { display: none; } }
+@container (max-height: 230px) { .car-text .chips { display: none; } }
+@container (max-height: 170px) { .car-headline { -webkit-line-clamp: 1; } }
 .car-text > * { flex-shrink: 0; } /* 縮めずに、入りきらない分は下を隠す */
 .car-text .eyebrow { margin: 0; }
 .car-name { margin: 0; font-size: clamp(1.8rem, min(5vw, 6vh), 3.4rem); font-weight: 800; line-height: 1.15; }
