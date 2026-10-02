@@ -9,12 +9,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "wrangler dev",
+    "preview": "astro preview",
     "check": "astro check",
     "scrape": "node scripts/scrape-official.ts",
     "feeds": "node scripts/fetch-feeds.ts",
     "import-eval": "node scripts/import-eval-sheet.ts",
-    "deploy": "astro build && wrangler deploy"
+    "deploy": "./scripts/deploy.sh"
   },
   "dependencies": {
     "astro": "^7.3.5",

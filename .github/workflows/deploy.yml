@@ -1,24 +1,34 @@
-# main に入った内容を Cloudflare Workers（Static Assets）に公開する
-# 必要な Secrets: CLOUDFLARE_API_TOKEN（Workers Scripts:Edit 権限）, CLOUDFLARE_ACCOUNT_ID
+# Cloudflare Pages に公開する
+# - main への push / 定期実行 → 本番（https://kaishi-lab.pages.dev）
+# - PR → プレビュー（https://<ブランチ名>.kaishi-lab.pages.dev）。URL を PR にコメントする
+# 必要な Secrets: CLOUDFLARE_API_TOKEN（Account / Cloudflare Pages / Edit）, CLOUDFLARE_ACCOUNT_ID
 name: Deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
   workflow_call:
 
 concurrency:
-  group: deploy
-  cancel-in-progress: false
+  group: deploy-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   deploy:
+    # フォークからの PR には Secrets が渡らないのでプレビューはスキップ（CI のチェックは動く）
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main # 定期実行で直前に push したフィードも含める
+          # 定期実行から呼ばれたときは、直前に push したフィードを含む最新の main を使う
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -26,8 +36,17 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - uses: cloudflare/wrangler-action@v3
+      - id: pages
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+          command: pages deploy dist --project-name=kaishi-lab --branch=${{ github.head_ref || 'main' }}
+      - name: プレビュー URL を PR にコメント
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.pages.outputs.deployment-alias-url || steps.pages.outputs.deployment-url }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --edit-last --create-if-none \
+            --body "プレビューができました: $URL （このPRの変更を反映した見た目を確認できます）"

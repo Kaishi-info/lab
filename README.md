@@ -118,9 +118,9 @@ pnpm build      # dist/ に静的サイトを出力（YAML の検証も兼ねる
 pnpm check      # 型チェック
 pnpm scrape     # 公式サイトを取り込む
 pnpm feeds      # researchmap・RSS を取り込む（pnpm feeds <ID> で 1 人だけ）
-pnpm deploy     # Cloudflare に公開（通常は GitHub Actions が行う）
+pnpm run deploy # Cloudflare Pages に公開（.secrets/kaishi.env が必要。通常は GitHub Actions が行う）
 ```
 
-- 構成: Astro（静的サイト）→ Cloudflare Workers Static Assets
-- GitHub Actions: `ci.yml`（PR チェック）/ `watch.yml`（毎日 03:00 JST に取り込み）/ `deploy.yml`（main への push で公開）
+- 構成: Astro（静的サイト）→ Cloudflare Pages（本番 https://kaishi-lab.pages.dev 、PR ごとにプレビュー URL）
+- GitHub Actions: `ci.yml`（PR チェック）/ `watch.yml`（毎日 03:00 JST に取り込み）/ `deploy.yml`（main への push で本番、PR ごとにプレビュー）
 - デプロイには リポジトリの Secrets `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` が必要です

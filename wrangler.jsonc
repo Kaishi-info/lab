@@ -1,12 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // 静的サイトを Cloudflare Workers（Static Assets）で配信する
+  // Cloudflare Pages で静的サイトを配信する
+  // 本番: https://kaishi-lab.pages.dev（のちに lab.kaishi.ac.jp を Pages のカスタムドメインに設定）
+  // プレビュー: https://<ブランチ名>.kaishi-lab.pages.dev
   "name": "kaishi-lab",
   "compatibility_date": "2026-09-01",
-  "assets": {
-    "directory": "./dist",
-    "not_found_handling": "404-page"
-  }
-  // 独自ドメインを使うときは、大学の DNS 設定のあとで有効にする
-  // "routes": [{ "pattern": "lab.kaishi.ac.jp", "custom_domain": true }]
+  "pages_build_output_dir": "./dist"
 }

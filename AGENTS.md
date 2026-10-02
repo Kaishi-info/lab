@@ -62,7 +62,7 @@ AI エージェントは作業を始める前に必ず全文を読んでくだ�
 ## 7. 技術メモ
 
 - Astro（静的サイト）。データは YAML を Content Collections で読む（`src/content.config.ts`）
-- 公開先: Cloudflare Workers Static Assets（`wrangler.jsonc`）。GitHub Actions の `deploy.yml` が main への push で公開
+- 公開先: Cloudflare Pages（`wrangler.jsonc`）。`deploy.yml` が main への push で本番、PR ごとにプレビュー URL を発行
 - `watch.yml` が毎日 03:00 JST に公式サイトと researchmap・RSS を取り込む
 - パッケージ管理は pnpm。Node 24 以上（`scripts/*.ts` は Node で直接実行）
 - デザイン: グラスモーフィズム。色などは `src/styles/global.css` の先頭の CSS 変数にまとまっている。スマホ（375px）で崩れないことを確認する

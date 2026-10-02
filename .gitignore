@@ -16,6 +16,7 @@ dist/
 .env.*
 !.env.example
 .dev.vars
+.secrets/
 
 # OS・エディタ
 .DS_Store
