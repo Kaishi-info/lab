@@ -74,9 +74,11 @@ pnpm import-eval ~/Downloads/教育職員評価基準シート....xlsx shirai-ak
 `/ask/` は 1 問ずつ答えるチャット型のフォームです（先生 → 授業 → 聞きたいこと → 立場 → 名前 → メール → 確認）。
 先生のページで **まだ書かれていない項目** が、質問の候補として出ます。よく届く質問はページに書いておくと、候補から消えます。
 
-- 送信は Cloudflare Worker（`workers/ask/`）が受け取り、Resend で先生（未登録なら学部の窓口）にメールします。先生は「返信」で答えます
-- 先生のメールアドレスは公開リポジトリに置かず、Worker の Secrets に入れます。質問した人には自動返信しません（踏み台にされないため）
-- デプロイ: `pnpm ask:deploy`（`~/.secrets/kaishi.env` の `RESEND_KAISHI_API_KEY` と `ASK_KAISHI_TO` が必要）。出てきた URL を GitHub の Variables `ASK_ENDPOINT` に登録
+- 送信は同じサイトの Cloudflare Pages Functions（`functions/api/ask.ts`）が受け取り、設定された通知先すべてに送ります
+  - **メール（Resend）**: 先生（未登録なら学部の窓口）へ。先生は「返信」で質問した人に答えられます
+  - **Slack / Discord / Teams**: Webhook でチャンネルに投稿
+- 先生のメールアドレスや Webhook URL は公開リポジトリに置かず、Cloudflare Pages の環境変数に入れます（`pnpm secrets` が `~/.secrets/kaishi.env` から設定）
+- 質問した人には自動返信しません（入力されたアドレスに大学名義のメールを送れる踏み台にされないため）
 
 ## 開発者向け
 
@@ -88,9 +90,12 @@ pnpm check      # 型チェック
 pnpm scrape     # 公式サイトを取り込む
 pnpm feeds      # researchmap・RSS を取り込む（pnpm feeds <ID> で 1 人だけ）
 pnpm import-curriculum <科目一覧.csv>  # 科目一覧（オフィスアワー含む）を取り込む
-pnpm preview:cloudflare  # 手元から Cloudflare Pages にプレビュー（~/.secrets/kaishi.env が必要）
+pnpm pages:dev  # Pages Functions（/api/ask）込みで手元で動かす（通知先は .dev.vars）
+pnpm preview:cloudflare  # 手元から Cloudflare Pages に公開（~/.secrets/kaishi.env が必要）
+pnpm secrets  # 質問フォームの通知先を Cloudflare Pages に設定
 ```
 
-- 構成: Astro（静的サイト）→ GitHub Pages（GitHub Actions でビルド・公開。独自ドメイン設定前は https://kaishi-info.github.io/lab/ ）
-- GitHub Actions: `ci.yml`（PR チェック）/ `watch.yml`（毎日 03:00 JST に取り込み）/ `deploy.yml`（main への push で GitHub Pages に公開）
-- サイト内リンクは `href()`（src/lib/teachers.ts）を通す。GitHub Pages のサブパスでも動くように
+- 構成: Astro（静的サイト）＋ Pages Functions（`functions/`）→ Cloudflare Pages（本番 https://kaishi-lab.pages.dev 、PR ごとにプレビュー URL）
+- GitHub Actions: `ci.yml`（PR チェック）/ `watch.yml`（毎日 03:00 JST に取り込み）/ `deploy.yml`（main への push で本番、PR ごとにプレビュー）
+- デプロイには GitHub の Secrets `CLOUDFLARE_API_TOKEN`（Cloudflare Pages: Edit）と `CLOUDFLARE_ACCOUNT_ID` が必要です
+- サイト内リンクは `href()`（src/lib/teachers.ts）を通す（サブパスでの公開にも対応できるように）

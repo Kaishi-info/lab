@@ -6,8 +6,10 @@ interface Props {
   title?: string;
   description?: string;
   image?: string;
+  /** 横幅を広く使うページ（オフィスアワーの時間割など） */
+  wide?: boolean;
 }
-const { title, description = '開志創造大学 情報デザイン学部の先生たちが、自分で書いて更新している教員ページです。', image } = Astro.props;
+const { title, description = '開志創造大学 情報デザイン学部の先生たちが、自分で書いて更新している教員ページです。', image, wide } = Astro.props;
 const siteName = 'TEACHERS — 情報デザイン学部';
 const fullTitle = title ? `${title} | ${siteName}` : `${siteName} | 開志創造大学`;
 const path = Astro.url.pathname;
@@ -51,7 +53,7 @@ const nav = [
     </div>
 
     <header class="site-header">
-      <div class="wrap">
+      <div class:list={['wrap', { wide }]}>
         <div class="header-inner glass">
           <a class="brand" href={href('/')}>
             <img class="brand-mark" src={href('/logo-mark.svg')} alt="" width="26" height="30" />
@@ -69,7 +71,7 @@ const nav = [
       </div>
     </header>
 
-    <main class="wrap">
+    <main class:list={['wrap', { wide }]}>
       <slot />
     </main>
 

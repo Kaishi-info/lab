@@ -1,54 +1,53 @@
-# GitHub Pages に公開する（main への push・定期実行のあと・手動）
-# 独自ドメイン（lab.kaishi.ac.jp）を設定するまでは https://kaishi-info.github.io/lab/ で公開される
+# Cloudflare Pages に公開する（質問フォームの送信は同じプロジェクトの Pages Functions: functions/）
+# - main への push / 定期実行 → 本番（https://kaishi-lab.pages.dev 、のちに lab.kaishi.ac.jp）
+# - PR → プレビュー（https://<ブランチ名>.kaishi-lab.pages.dev）。URL を PR にコメントする
+# 必要な Secrets: CLOUDFLARE_API_TOKEN（Account / Cloudflare Pages / Edit）, CLOUDFLARE_ACCOUNT_ID
+# 通知先（Resend・Slack など）は GitHub ではなく Cloudflare Pages 側の環境変数（pnpm secrets）
 name: Deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
   workflow_call:
 
+concurrency:
+  group: deploy-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
+  pull-requests: write
 
 jobs:
-  build:
+  deploy:
+    # フォークからの PR には Secrets が渡らないのでプレビューはスキップ（CI のチェックは動く）
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main # 定期実行から呼ばれたときも、直前に push したフィードを含む最新の main を使う
+          # 定期実行から呼ばれたときは、直前に push したフィードを含む最新の main を使う
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - id: pages
-        uses: actions/configure-pages@v5
       - run: pnpm build
-        env:
-          # サブパス（/lab/）や独自ドメインに合わせてリンクを作る
-          SITE: ${{ steps.pages.outputs.origin }}
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
-          # 「先生に聞いてみる」の送信先（workers/ask の URL）。リポジトリの Variables に ASK_ENDPOINT として登録
-          PUBLIC_ASK_ENDPOINT: ${{ vars.ASK_ENDPOINT }}
-      - uses: actions/upload-pages-artifact@v3
+      - id: pages
+        uses: cloudflare/wrangler-action@v3
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=kaishi-lab --branch=${{ github.head_ref || 'main' }}
+      - name: プレビュー URL を PR にコメント
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.pages.outputs.deployment-alias-url || steps.pages.outputs.deployment-url }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --edit-last --create-if-none \
+            --body "プレビューができました: $URL （このPRの変更を反映した見た目を確認できます）"

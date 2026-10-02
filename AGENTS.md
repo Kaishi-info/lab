@@ -62,8 +62,8 @@ AI エージェントは作業を始める前に必ず全文を読んでくだ�
 ## 7. 技術メモ
 
 - Astro（静的サイト）。データは YAML を Content Collections で読む（`src/content.config.ts`）
-- 公開先: GitHub Pages。`deploy.yml` が main への push でビルド・公開。サイト内リンクは必ず `href()` を通す（サブパス /lab/ 対応）
-- 質問フォーム（/ask/）の送信は `workers/ask/`（Cloudflare Worker + Resend）。先生のメールアドレスは Worker の Secrets にだけ置き、リポジトリに書かない
+- 公開先: Cloudflare Pages（大学のアカウント、プロジェクト kaishi-lab）。`deploy.yml` が main への push で本番、PR ごとにプレビュー。サイト内リンクは必ず `href()` を通す
+- 質問フォーム（/ask/）の送信は `functions/api/ask.ts`（Pages Functions）→ Resend / Slack / Discord / Teams。メールアドレスや Webhook URL は Pages の環境変数にだけ置き、リポジトリに書かない
 - 科目一覧は `pnpm import-curriculum <CSV>` で data/curriculum.yaml に変換する。CSV 本体とオフィスアワーの原文（内部メモが混ざる）はコミットしない
 - `watch.yml` が毎日 03:00 JST に公式サイトと researchmap・RSS を取り込む
 - パッケージ管理は pnpm。Node 24 以上（`scripts/*.ts` は Node で直接実行）

@@ -1,5 +1,5 @@
 ---
-// 先生に聞いてみる: 1 問ずつ答えるチャット型のフォーム。最後に Worker（workers/ask）経由で Resend からメールを送る
+// 先生に聞いてみる: 1 問ずつ答えるチャット型のフォーム。最後に /api/ask（Pages Functions）が Resend・Slack・Discord・Teams に通知する
 // /ask/?t=<先生のID>&c=<科目名>&q=<質問の候補キー> で先生・科目・質問を選んだ状態から始められる
 import Base from '../layouts/Base.astro';
 import { getTeachers, questionsFor, href } from '../lib/teachers';
@@ -13,7 +13,8 @@ const data = teachers.map((t) => ({
   courses: t.courses.map((c) => c.name),
   questions: questionsFor(t),
 }));
-const endpoint = import.meta.env.PUBLIC_ASK_ENDPOINT ?? '';
+// 送信先は同じサイトの Pages Functions（functions/api/ask.ts）
+const endpoint = href('/api/ask');
 const ROLES = ['在学生', '高校生', '社会人', '専門学校生', '保護者', '高校・専門学校の先生', '企業・自治体', '研究者', 'その他'];
 ---
 
@@ -242,10 +243,6 @@ const ROLES = ['在学生', '高校生', '社会人', '専門学校生', '保護
 
   async function send() {
     const err = document.getElementById('err')!;
-    if (!endpoint) {
-      err.textContent = 'いまは送信の準備中です。もうしばらくお待ちください。';
-      return;
-    }
     sending = true;
     next.disabled = true;
     next.textContent = '送信中…';

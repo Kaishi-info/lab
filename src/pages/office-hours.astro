@@ -33,8 +33,8 @@ const areas = [...new Set(courseRows.map((r) => r.c.area))];
 const without = teachers.filter((t) => t.ohSlots.length === 0);
 ---
 
-<Base title="オフィスアワー" description="情報デザイン学部の先生たちのオフィスアワー（質問・相談できる時間）。時間帯と授業から探せます。">
-  <section class="hero">
+<Base wide title="オフィスアワー" description="情報デザイン学部の先生たちのオフィスアワー（質問・相談できる時間）。時間帯と授業から探せます。">
+  <section class="hero compact">
     <p class="eyebrow">Office Hours</p>
     <h1><span class="grad">いつ</span>相談できる？</h1>
     <p class="lead">授業のこと、研究のこと、進路のこと。先生に気軽に相談できる時間です。顔を押すと先生のページへ。</p>
@@ -60,12 +60,12 @@ const without = teachers.filter((t) => t.ohSlots.length === 0);
                   {list.map((s, k) => (
                     <a
                       class="tt-face"
+                      data-name={s.t.official.name.split(' ')[0]}
                       href={href(`/${s.t.slug}/`)}
                       title={`${s.t.official.name}　${s.day} ${fmt(s.start)}–${fmt(s.end)}${s.courses.length ? `（${s.courses.join('、')}）` : ''}`}
                       style={`--delay:${-((hi * 7 + di + k) * 0.9) % 5}s`}
                     >
                       <img class="float-face" src={s.t.photo} alt={s.t.official.name} loading="lazy" />
-                      <span>{s.t.official.name.split(' ')[0]}</span>
                     </a>
                   ))}
                 </div>

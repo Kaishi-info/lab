@@ -16,8 +16,8 @@
     "import-eval": "node scripts/import-eval-sheet.ts",
     "import-curriculum": "node scripts/import-curriculum.ts",
     "preview:cloudflare": "./scripts/deploy.sh",
-    "ask:dev": "wrangler dev -c workers/ask/wrangler.jsonc",
-    "ask:deploy": "./scripts/deploy-ask.sh"
+    "pages:dev": "astro build && wrangler pages dev dist",
+    "secrets": "./scripts/set-secrets.sh"
   },
   "dependencies": {
     "astro": "^7.3.5",
