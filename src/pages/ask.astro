@@ -19,6 +19,7 @@ const ROLES = ['在学生', '高校生', '社会人', '専門学校生', '保護
 ---
 
 <Base title="先生に聞いてみる" description="情報デザイン学部の先生に、授業や研究、進路のことを質問できます。">
+  {import.meta.env.PUBLIC_ASK_ENABLED !== 'true' && <meta name="robots" content="noindex" slot="head" />}
   <section class="hero" style="padding-bottom:1rem">
     <p class="eyebrow">Ask</p>
     <h1><span class="grad">先生に</span>聞いてみる</h1>

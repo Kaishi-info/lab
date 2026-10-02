@@ -140,6 +140,11 @@ const teachers = defineCollection({
         website: z.url().optional(), // 研究室サイト・CVサイト
         portfolio: z.url().optional(), // ポートフォリオ
         github: z.string().regex(/^[A-Za-z0-9-]+$/, 'GitHub のユーザー名だけを書いてください').optional(),
+        bluesky: z.string().regex(/^[A-Za-z0-9.-]+$/, '@ なしのハンドル（例: name.bsky.social）を書いてください').optional(),
+        instagram: z.string().regex(/^[A-Za-z0-9._]+$/, '@ なしの ID を書いてください').optional(),
+        note: z.string().regex(/^[A-Za-z0-9_]+$/, 'note の ID（note.com/<ここ>）を書いてください').optional(),
+        youtube: z.url().optional(), // チャンネルの URL
+        linkedin: z.url().optional(),
         x: z.string().regex(/^[A-Za-z0-9_]+$/, '@ なしの ID を書いてください').optional(),
         links: z.array(link).optional(),
 

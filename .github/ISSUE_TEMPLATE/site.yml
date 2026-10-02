@@ -1,0 +1,19 @@
+name: サイトの不具合・要望
+description: 表示の崩れ、間違い、こうしてほしい、など
+labels: ["site"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 何が起きているか／どうしてほしいか
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: ページの URL
+  - type: dropdown
+    id: device
+    attributes:
+      label: 見ていた端末
+      options: [スマホ, タブレット, パソコン, わからない]

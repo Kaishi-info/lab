@@ -65,10 +65,15 @@ researchmap: akihiko               # https://researchmap.jp/<ここ>/ → 論文
 #     place: オンライン（Zoom）
 
 # ── リンク ───────────────────
-# x: your_handle                    # X の ID（@なし）
+x: o_ob                            # X の ID（@なし）
 # github: your-name                 # GitHub のユーザー名
+# bluesky: name.bsky.social         # Bluesky のハンドル
+# instagram: your_id
+# note: your_id                     # note.com/<ここ>
+# youtube: https://www.youtube.com/@xxxx
+# linkedin: https://www.linkedin.com/in/xxxx
 # portfolio: https://example.com
-# website: https://example.com
+website: https://akihiko.shirai.as/
 # lab:
 #   name: ○○研究室
 #   url: https://example.com

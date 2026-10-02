@@ -197,8 +197,13 @@ function stub(o: Official): string {
 # ── リンク ───────────────────
 # x: your_handle                    # X の ID（@なし）
 # github: your-name                 # GitHub のユーザー名
+# bluesky: name.bsky.social         # Bluesky のハンドル
+# instagram: your_id
+# note: your_id                     # note.com/<ここ>
+# youtube: https://www.youtube.com/@xxxx
+# linkedin: https://www.linkedin.com/in/xxxx
 # portfolio: https://example.com
-# website: https://example.com
+# website: https://example.com     # 研究室サイト・CVサイト
 # lab:
 #   name: ○○研究室
 #   url: https://example.com

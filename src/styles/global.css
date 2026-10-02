@@ -433,8 +433,8 @@ table.status td.ng { color: var(--muted); }
 .ask-done { font-size: 1.15rem; }
 .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .ask-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-.ask-list a { display: block; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--glass-strong); text-decoration: none; color: var(--text); }
-.ask-list a::before { content: 'Q. '; color: var(--accent); font-weight: 800; }
+.ask-list a, .ask-list span { display: block; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--glass-strong); text-decoration: none; color: var(--text); }
+.ask-list a::before, .ask-list span::before { content: 'Q. '; color: var(--accent); font-weight: 800; }
 .ask-list a:hover { background: var(--chip); }
 .ask-choices.faces { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 @media (min-width: 560px) { .ask-choices.faces { grid-template-columns: repeat(4, 1fr); } }

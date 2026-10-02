@@ -1,0 +1,71 @@
+name: 自分のページに情報を追加・更新したい
+description: SNS・Webサイト・オフィスアワー・メッセージなどを書いてください。担当者（または AI）が YAML に反映して PR を作ります
+title: "[ページ更新] "
+labels: ["page-update"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        GitHub に慣れていなくても大丈夫です。書ける項目だけ書いてください（空欄のままで OK）。
+        自分で直接編集したい場合は、ページの一番下の「GitHub で編集する」からどうぞ。
+        **公開ページに載る内容です。** 学生の個人情報や、非公開の資料は書かないでください。
+  - type: input
+    id: teacher
+    attributes:
+      label: お名前（またはページの URL）
+      placeholder: 例) 白井 暁彦 / https://lab.kaishi.ac.jp/shirai-akihiko/
+    validations:
+      required: true
+  - type: textarea
+    id: sns
+    attributes:
+      label: SNS・リンク
+      description: 載せたいものだけ。ID は @ なしで OK
+      value: |
+        X: 
+        Bluesky: 
+        Instagram: 
+        note: 
+        YouTube: 
+        GitHub: 
+        LinkedIn: 
+        researchmap: 
+        Webサイト・CV: 
+        ポートフォリオ: 
+        研究室サイト: 
+        ブログ等の RSS: 
+        その他: 
+      render: text
+  - type: input
+    id: catchcopy
+    attributes:
+      label: ひとこと（キャッチコピー）
+      description: 「○○を使って、○○をできるようにする」の形がおすすめ（60字まで）
+  - type: textarea
+    id: learn
+    attributes:
+      label: この先生から学べること（3〜5項目）
+      placeholder: |
+        - 生成AIで画像・動画をつくる技術
+        - 作品を公開して評価を受ける方法
+  - type: textarea
+    id: office-hours
+    attributes:
+      label: オフィスアワー
+      description: 書くと科目一覧の時間より優先されます
+      placeholder: 例) 水曜 18:00–19:00 オンライン（Zoom）。前日までに連絡ください
+  - type: textarea
+    id: message
+    attributes:
+      label: 学生へのメッセージ・こんな人と一緒に学びたい
+  - type: textarea
+    id: other
+    attributes:
+      label: そのほか（研究テーマ・プロジェクト・学生の作品・最近のトピックなど）
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: 確認
+      options:
+        - label: 公開ページに載せてよい内容です
+          required: true

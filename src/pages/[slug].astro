@@ -23,6 +23,7 @@ const timeRange = (s?: string, e?: string) => (s || e ? `${s ?? ''}–${e ?? ''}
 const latestYear = Math.max(0, ...(d.highlights ?? []).map((h) => h.year));
 const highlights = (d.highlights ?? []).filter((h) => h.year === latestYear);
 const asks = questionsFor(t);
+const askEnabled = import.meta.env.PUBLIC_ASK_ENABLED === 'true';
 const askUrl = (q?: string) => href(`/ask/?t=${t.slug}${q ? `&q=${q}` : ''}`);
 const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.length || d.officeHours?.length || d.careers;
 ---
@@ -59,13 +60,18 @@ const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.lengt
         )
       }
       <div class="links">
-        <a class="btn primary" href={askUrl()}>この先生に聞いてみる</a>
+        {askEnabled && <a class="btn primary" href={askUrl()}>この先生に聞いてみる</a>}
         {d.lab?.url && <a class="btn primary" href={d.lab.url}>{d.lab.name}</a>}
         {d.x && <a class="btn sns" href={`https://x.com/${d.x}`}><span class="ico" aria-hidden="true">𝕏</span>@{d.x}</a>}
         {d.github && <a class="btn sns" href={`https://github.com/${d.github}`}><span class="ico" aria-hidden="true">⌥</span>GitHub</a>}
+        {d.bluesky && <a class="btn sns" href={`https://bsky.app/profile/${d.bluesky}`}><span class="ico" aria-hidden="true">🦋</span>Bluesky</a>}
+        {d.instagram && <a class="btn sns" href={`https://www.instagram.com/${d.instagram}/`}><span class="ico" aria-hidden="true">◎</span>Instagram</a>}
+        {d.note && <a class="btn sns" href={`https://note.com/${d.note}`}><span class="ico" aria-hidden="true">n</span>note</a>}
+        {d.youtube && <a class="btn sns" href={d.youtube}><span class="ico" aria-hidden="true">▶</span>YouTube</a>}
+        {d.linkedin && <a class="btn sns" href={d.linkedin}><span class="ico" aria-hidden="true">in</span>LinkedIn</a>}
         {d.portfolio && <a class="btn sns" href={d.portfolio}><span class="ico" aria-hidden="true">◆</span>ポートフォリオ</a>}
         {d.researchmap && <a class="btn sns" href={`https://researchmap.jp/${d.researchmap}/`}><span class="ico" aria-hidden="true">R</span>researchmap</a>}
-        {d.website && <a class="btn" href={d.website}>Webサイト</a>}
+        {d.website && <a class="btn" href={d.website}>Webサイト・CV</a>}
         {d.links?.map((l) => <a class="btn" href={l.url}>{l.label}</a>)}
         <a class="btn" href={o.sourceUrl}>公式プロフィール</a>
       </div>
@@ -358,19 +364,25 @@ const hasForStudents = d.message || d.lookingFor || d.consult || t.ohSlots.lengt
       <h2>Ask <span>{o.name.split(' ')[0]}先生に聞いてみよう</span></h2>
       {asks.length > 0 ? (
         <>
-          <p class="sub" style="margin-top:0">このページにまだ書かれていないことです。押すと質問フォームが開きます。</p>
+          <p class="sub" style="margin-top:0">
+            {askEnabled ? 'このページにまだ書かれていないことです。押すと質問フォームが開きます。' : 'このページにまだ書かれていないことです。'}
+          </p>
           <ul class="ask-list">
             {asks.map((a) => (
-              <li>
-                <a href={askUrl(a.key)}>{a.q}</a>
-              </li>
+              <li>{askEnabled ? <a href={askUrl(a.key)}>{a.q}</a> : <span>{a.q}</span>}</li>
             ))}
           </ul>
         </>
       ) : (
         <p style="margin:0">授業や研究、進路のことを、先生に直接質問できます。</p>
       )}
-      <a class="btn primary" href={askUrl()} style="margin-top:1rem">質問する →</a>
+      {askEnabled ? (
+        <a class="btn primary" href={askUrl()} style="margin-top:1rem">質問する →</a>
+      ) : (
+        <p class="sub" style="margin:1rem 0 0">
+          {o.name.split(' ')[0]}先生へ: 答えをページに書くと、この一覧から消えます。<a href={editUrl(t.slug)}>ページを編集する</a>
+        </p>
+      )}
     </section>
 
     {

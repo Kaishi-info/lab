@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 自分で直接編集する方法（README）
+    url: https://github.com/Kaishi-info/lab#自分のページを編集する
+    about: ブラウザだけで自分の YAML を編集して PR を出す手順です

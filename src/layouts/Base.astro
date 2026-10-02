@@ -18,7 +18,8 @@ const nav = [
   ['/fields/', '分野'],
   ['/courses/', '授業'],
   ['/office-hours/', 'オフィスアワー'],
-  ['/ask/', '質問'],
+  // 質問フォームは通知先の準備ができてから公開する（Issue #2）
+  ...(import.meta.env.PUBLIC_ASK_ENABLED === 'true' ? ([['/ask/', '質問']] as const) : []),
 ] as const;
 ---
 
