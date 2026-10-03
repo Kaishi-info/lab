@@ -366,9 +366,9 @@ li:nth-child(3n) .float-face { animation-delay: -3.3s; }
 
 /* ── 授業一覧 ─────────────────────── */
 .course-list { display: grid; gap: 14px; grid-template-columns: 1fr; }
-@media (min-width: 900px) { .course-list { grid-template-columns: repeat(2, 1fr); } }
 .course-list .course { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; border-radius: var(--radius); scroll-margin-top: 90px; }
 .course-list .course.focus { outline: 2px solid var(--c1); }
+.course-list .course h3 { font-size: clamp(1.35rem, 2.6vw, 1.7rem); }
 .course-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .course-summary summary { cursor: pointer; list-style: none; color: var(--muted); font-size: 0.95rem; }
 .course-summary summary::-webkit-details-marker { display: none; }
