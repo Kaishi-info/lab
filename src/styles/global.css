@@ -484,3 +484,14 @@ table.status td.ng { color: var(--muted); }
   @keyframes tUp { from { transform: translateY(40%); opacity: 0; } }
 }
 @media (prefers-reduced-motion: reduce) { .t-dialog[open] { animation: none; } }
+
+/* ── 検索窓・絞り込み（授業ページ）── */
+.searchbox { display: flex; align-items: center; gap: 10px; margin: 1.2rem 0; padding: 6px 16px; border-radius: 999px; border: 2px solid var(--glass-border); cursor: text; transition: border-color 0.15s, box-shadow 0.15s; }
+.searchbox:focus-within { border-color: var(--c1); box-shadow: 0 0 0 4px rgba(79, 107, 255, 0.18); }
+.search-icon { font-size: 1.15rem; }
+.searchbox .search { font-size: 1.05rem; padding: 10px 0; }
+.filter-groups { display: grid; gap: 8px; margin: 0 0 1.5rem; }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.filter-label { font-size: 0.82rem; font-weight: 700; color: var(--muted); min-width: 5.5em; }
+@media (max-width: 640px) { .filter-label { width: 100%; } }
+.course-list .course .chips { padding-left: 0; margin: 0; }

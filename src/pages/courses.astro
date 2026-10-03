@@ -9,6 +9,13 @@ const bySlug = new Map(teachers.map((t) => [t.slug, t]));
 // 先生の YAML に書かれた授業の詳細（作るもの・到達目標・課題）
 const detail = new Map(teachers.flatMap((t) => t.courses.filter((c) => c.official).map((c) => [c.official!.id, c] as const)));
 const areas = [...new Set(curriculum.map((c) => c.area))];
+const grades = [...new Set(curriculum.map((c) => c.grade))].sort();
+// 絞り込み: グループの中では 1 つを選び、グループ同士は組み合わせ（かつ）
+const filters = [
+  { key: 'required', label: '必修/選択', options: [['true', '必修'], ['false', '選択']] },
+  { key: 'grade', label: '配当学年', options: grades.map((g) => [g, g]) },
+  { key: 'area', label: '区分', options: areas.map((a) => [a, a]) },
+] as const;
 ---
 
 <Base title="授業" description="情報デザイン学部の授業で、何を学び、何を作り、何ができるようになるか。">
@@ -18,14 +25,27 @@ const areas = [...new Set(curriculum.map((c) => c.area))];
     <p class="lead">全{curriculum.length}科目。それぞれの授業で何を学び、誰が教えているのか。</p>
   </section>
 
-  <div class="toolbar glass" role="search">
-    <input id="q" class="search" type="search" placeholder="授業名・内容・先生の名前でさがす" aria-label="授業をさがす" />
+  <label class="searchbox glass" role="search">
+    <span class="search-icon" aria-hidden="true">🔍</span>
+    <input id="q" class="search" type="search" placeholder="授業名・内容・先生の名前で検索" aria-label="授業名・内容・先生の名前で検索" />
     <span class="count"><span id="count">{curriculum.length}</span> / {curriculum.length}</span>
-  </div>
-  <div class="filters" role="group" aria-label="区分で絞り込む">
-    <button type="button" class="chip-btn" aria-pressed="true" data-area="">すべて</button>
-    {areas.map((a) => <button type="button" class="chip-btn" aria-pressed="false" data-area={a}>{a}</button>)}
-    <button type="button" class="chip-btn" aria-pressed="false" data-area="__required">必修のみ</button>
+  </label>
+  <div class="filter-groups">
+    {
+      filters.map((f) => (
+        <div class="filter-row" role="group" aria-label={`${f.label}で絞り込む`} data-filter={f.key}>
+          <span class="filter-label">{f.label}</span>
+          <button type="button" class="chip-btn" aria-pressed="true" data-value="">
+            すべて
+          </button>
+          {f.options.map(([v, l]) => (
+            <button type="button" class="chip-btn" aria-pressed="false" data-value={v}>
+              {l}
+            </button>
+          ))}
+        </div>
+      ))
+    }
   </div>
 
   <div class="course-list" id="list">
@@ -39,6 +59,7 @@ const areas = [...new Set(curriculum.map((c) => c.area))];
             id={courseAnchor(c.id)}
             data-area={c.area}
             data-required={String(c.required)}
+            data-grade={c.grade}
             data-keywords={[c.name, c.summary, ...c.teachers.map((x) => x.name)].join(' ').toLowerCase()}
           >
             <div class="course-head">
@@ -95,15 +116,15 @@ const areas = [...new Set(curriculum.map((c) => c.area))];
   const items = [...document.querySelectorAll<HTMLElement>('#list .course')];
   const count = document.querySelector('#count')!;
   const none = document.querySelector<HTMLElement>('#none')!;
-  const buttons = [...document.querySelectorAll<HTMLButtonElement>('.chip-btn')];
-  let area = '';
+  // グループごとの選択（空 = すべて）
+  const selected: Record<string, string> = {};
   function apply() {
     const words = q.value.toLowerCase().split(/\s+/).filter(Boolean);
     let n = 0;
     for (const el of items) {
       const hit =
         words.every((w) => el.dataset.keywords!.includes(w)) &&
-        (!area || (area === '__required' ? el.dataset.required === 'true' : el.dataset.area === area));
+        Object.entries(selected).every(([k, v]) => !v || el.dataset[k] === v);
       el.hidden = !hit;
       if (hit) n++;
     }
@@ -111,12 +132,15 @@ const areas = [...new Set(curriculum.map((c) => c.area))];
     none.hidden = n > 0;
   }
   q.addEventListener('input', apply);
-  for (const b of buttons) {
-    b.addEventListener('click', () => {
-      area = b.dataset.area!;
-      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-      apply();
-    });
+  for (const row of document.querySelectorAll<HTMLElement>('[data-filter]')) {
+    const buttons = [...row.querySelectorAll<HTMLButtonElement>('.chip-btn')];
+    for (const b of buttons) {
+      b.addEventListener('click', () => {
+        selected[row.dataset.filter!] = b.dataset.value!;
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        apply();
+      });
+    }
   }
   // #course-xxx で来たら開いて目立たせる
   const target = location.hash && document.querySelector<HTMLElement>(decodeURIComponent(location.hash));
