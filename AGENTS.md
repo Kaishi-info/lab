@@ -99,6 +99,6 @@ AI エージェントは作業を始める前に必ず全文を読んでくだ�
 - Astro（静的サイト）。データは YAML を Content Collections で読む（`src/content.config.ts`）。先生 1 人分のまとめは `src/lib/teachers.ts`
 - 公開先: Cloudflare Pages（大学のアカウント、プロジェクト `kaishi-lab`）。`deploy.yml` が main への push で本番、PR ごとにプレビュー。サイト内リンクは必ず `href()` を通す
 - 質問フォーム（/ask/）の送信は `functions/api/ask.ts`（Pages Functions）→ Resend / Slack / Discord / Teams。入口は `PUBLIC_ASK_ENABLED=true` のときだけ表示（#2）
-- 科目一覧は `pnpm import-curriculum <CSV>`、公式サイトは `pnpm scrape`、researchmap・RSS は `pnpm feeds`。`watch.yml` が毎日 03:00 JST に scrape と feeds を実行する
+- 科目一覧は `pnpm import-curriculum <CSV>`、公式サイトは `pnpm scrape`、researchmap・RSS は `pnpm feeds`。`watch.yml` が毎日 03:00 JST に scrape と feeds を実行する。組織の設定で Actions は PR を作れないため、公式サイトの変更は `auto/official-sync` ブランチ＋Issue（`official-sync`）で知らせ、人が PR を作る
 - パッケージ管理は pnpm。Node 24 以上（`scripts/*.ts` は Node で直接実行）
 - デザイン: グラスモーフィズム。色などは `src/styles/global.css` の先頭の CSS 変数。日本語は `word-break: auto-phrase`

@@ -99,7 +99,7 @@ B・C は PR（変更を見てもらう申請）になります。自動チェ�
 
 | 情報 | 置き場所 | 更新 |
 |---|---|---|
-| 公式サイトの氏名・職位・経歴・メッセージ・写真 | `data/official/<ID>.yaml` | 毎日 03:00 にチェックし、変更があれば PR を作成 |
+| 公式サイトの氏名・職位・経歴・メッセージ・写真 | `data/official/<ID>.yaml` | 毎日 03:00 にチェック。変更があれば取り込み用ブランチ `auto/official-sync` を作り、Issue（ラベル `official-sync`）で知らせる → Issue のリンクから PR を作ってマージ |
 | 科目一覧（科目概要・担当・オフィスアワー） | `data/curriculum.yaml` | CSV が更新されたら `pnpm import-curriculum` |
 | researchmap の業績・RSS の新着 | `data/feeds/<ID>.yaml` | 毎日取得して自動公開 |
 

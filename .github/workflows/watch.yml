@@ -1,5 +1,5 @@
 # 毎日 1 回、外の情報を取り込む
-# - 公式サイト（教員紹介）の変更 → data/official/ を更新する PR を作る（人が確認してからマージ）
+# - 公式サイト（教員紹介）の変更 → 取り込み用ブランチ（auto/official-sync）を push し、Issue で知らせる（人が PR を作って確認・マージ）
 # - researchmap・RSS の新着 → data/feeds/ を main に直接コミットして公開
 # どちらも変更が無ければ何もしない（PR もコミットも公開もしない）
 name: Watch
@@ -11,43 +11,74 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
+  issues: write
+  pull-requests: write # deploy.yml（PR にプレビュー URL をコメント）を呼ぶため
 
 jobs:
   official:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm scrape | tee scrape.log
-      - uses: peter-evans/create-pull-request@v7
-        with:
-          branch: auto/official-sync
-          title: '公式サイトの教員紹介が更新されました（自動）'
-          commit-message: 'chore: 公式サイトの教員紹介を取り込み'
-          add-paths: |
-            data/official/
-            teachers/
-            README.md
-          body: |
-            公式サイト（https://kaishi.ac.jp/info-d/teacher/）の変更を自動で取り込みました。
-            差分を確認してマージしてください。新しい先生がいる場合は `teachers/` に雛形も追加されています。
-          labels: automated
-          delete-branch: true
+      - run: pnpm scrape
+      # 組織の設定で Actions は PR を作れないので、取り込み用のブランチを push して Issue で知らせる。
+      # Issue のリンクから人が PR を作り、差分を確認してマージする
+      - name: 変更があればブランチを push して Issue で知らせる
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: auto/official-sync
+        run: |
+          git add data/official teachers README.md
+          if git diff --cached --quiet; then
+            echo "公式サイトに変更なし"
+            exit 0
+          fi
+          # 同じ内容の取り込みブランチがあり、お知らせの Issue も開いていれば何もしない（未マージの間に毎日書き込まない）
+          NUM=$(gh issue list --label official-sync --state open --json number -q '.[0].number')
+          if [ -n "$NUM" ] && git fetch -q origin "$BRANCH" 2>/dev/null && git diff --cached --quiet FETCH_HEAD -- data/official teachers README.md; then
+            echo "同じ変更はすでに $BRANCH にあり、#$NUM で知らせ済み"
+            exit 0
+          fi
+          STAT=$(git diff --cached --stat | sed 's/^/    /')
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -q -B "$BRANCH"
+          git commit -q -m 'chore: 公式サイトの教員紹介を取り込み'
+          git push -q --force origin "$BRANCH"
+
+          PR_URL="https://github.com/${{ github.repository }}/compare/main...${BRANCH}?expand=1&title=%E5%85%AC%E5%BC%8F%E3%82%B5%E3%82%A4%E3%83%88%E3%81%AE%E6%95%99%E5%93%A1%E7%B4%B9%E4%BB%8B%E3%82%92%E5%8F%96%E3%82%8A%E8%BE%BC%E3%81%BF"
+          BODY=$(printf '%s\n' \
+            "公式サイト（https://kaishi.ac.jp/info-d/teacher/）の教員紹介に変更がありました。" \
+            "" \
+            "**やること**: 下のリンクを開いて「Create pull request」→ 差分を確認 → マージ（マージすると自動で公開されます）" \
+            "" \
+            "$PR_URL" \
+            "" \
+            "変更されたファイル:" \
+            "" \
+            "$STAT" \
+            "" \
+            "新しい先生がいる場合は \`teachers/\` に雛形も追加されています。本文に \`Closes #この番号\` と書くと、マージでこの Issue が閉じます。")
+          # すでに開いている Issue があれば、そこに追記する（Issue を増やさない）
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" --body "$BODY"
+          else
+            gh issue create --title '公式サイトの教員紹介が更新されました（自動）' --label official-sync --body "$BODY"
+          fi
 
   feeds:
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
